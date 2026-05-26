@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: ticketsystem
+
+  datasource:
+    # PostgreSQL bağlantı bilgileri environment variable'dan okunur.
+    # Eğer environment variable tanımlı değilse sağdaki varsayılan değer kullanılır.
+    # Gerçek şifrenizi buraya yazmayın; .env dosyası veya IDE run config ile tanımlayın.
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/ticketsystemdb}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      # -----------------------------------------------------------
+      # GEÇİCİ AYAR — YALNIZCA GELİŞTİRME / ÖĞRENME AŞAMASI İÇİN
+      # 'update' → Hibernate, uygulama her başlatıldığında eksik
+      # tabloları ve sütunları otomatik oluşturur / günceller.
+      # Üretim ortamında ve Flyway eklendiğinde (Faz 10) bu değer
+      # 'validate' veya 'none' yapılacaktır.
+      # -----------------------------------------------------------
+      ddl-auto: update
+    show-sql: true          # Çalışan SQL sorgularını konsolda gösterir (öğrenme için faydalı)
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true    # SQL'i girintili ve okunabilir biçimde gösterir
+
+server:
+  port: 8080
+
+# Swagger UI: http://localhost:8080/swagger-ui/index.html
+# API Docs:   http://localhost:8080/api-docs
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /api-docs

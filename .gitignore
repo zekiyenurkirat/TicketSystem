@@ -1,1 +1,18 @@
-docs/ 
+# AI bağlamı — Claude çalışma notları ve öğrenme notları, GitHub'a gitmez
+ai-context/
+
+# Java build çıktıları
+target/
+*.class
+
+# Hassas bilgiler — şifre ve environment variable dosyaları
+.env
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
