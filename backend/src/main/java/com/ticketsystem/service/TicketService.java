@@ -1,5 +1,8 @@
 package com.ticketsystem.service;
 
+import com.ticketsystem.dto.request.AssignTicketRequest;
+import com.ticketsystem.dto.request.ChangeStatusRequest;
+import com.ticketsystem.dto.request.CreateTicketRequest;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.enums.Priority;
 import com.ticketsystem.entity.enums.TicketStatus;
@@ -10,7 +13,7 @@ import java.util.List;
 public interface TicketService {
 
     /** Yeni ticket oluşturur ve kaydeder. */
-    Ticket createTicket(Long createdById, String title, String description, Priority priority);
+    Ticket createTicket(CreateTicketRequest request);
 
     /** ID ile ticket getirir. */
     Ticket getTicketById(Long id);
@@ -19,10 +22,10 @@ public interface TicketService {
     Ticket getTicketByTicketNumber(String ticketNumber);
 
     /** Ticket'ı belirtilen agent'a atar. */
-    Ticket assignTicket(Long ticketId, Long agentId);
+    Ticket assignTicket(Long ticketId, AssignTicketRequest request);
 
     /** Ticket statüsünü değiştirir. */
-    Ticket changeStatus(Long ticketId, TicketStatus newStatus);
+    Ticket changeStatus(Long ticketId, ChangeStatusRequest request);
 
     /** Belirtilen statüdeki ticket'ları getirir. */
     List<Ticket> getTicketsByStatus(TicketStatus status);

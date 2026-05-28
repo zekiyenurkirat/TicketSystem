@@ -1,5 +1,8 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.dto.request.AssignTicketRequest;
+import com.ticketsystem.dto.request.ChangeStatusRequest;
+import com.ticketsystem.dto.request.CreateTicketRequest;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
 import com.ticketsystem.entity.enums.Priority;
@@ -58,18 +61,18 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
-    public Ticket createTicket(Long createdById, String title, String description, Priority priority) {
-        User createdBy = userService.getUserById(createdById);
+    public Ticket createTicket(CreateTicketRequest request) {
+        User createdBy = userService.getUserById(request.getCreatedById());
 
         Ticket ticket = new Ticket();
         ticket.setTicketNumber(generateTicketNumber());
-        ticket.setTitle(title);
-        ticket.setDescription(description);
-        ticket.setPriority(priority);
+        ticket.setTitle(request.getTitle());
+        ticket.setDescription(request.getDescription());
+        ticket.setPriority(request.getPriority());
         ticket.setCreatedBy(createdBy);
         ticket.setStatus(TicketStatus.NEW);
         ticket.setAssignedTo(null);
-        ticket.setDueDate(slaService.calculateDueDate(priority));
+        ticket.setDueDate(slaService.calculateDueDate(request.getPriority()));
 
         return ticketRepository.save(ticket);
     }
@@ -90,15 +93,15 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
-    public Ticket assignTicket(Long ticketId, Long agentId) {
+    public Ticket assignTicket(Long ticketId, AssignTicketRequest request) {
         Ticket ticket = getTicketById(ticketId);
-        User agent = userService.getUserById(agentId);
+        User agent = userService.getUserById(request.getAgentId());
 
         if (agent.getRole() != Role.AGENT) {
-            throw new RuntimeException("Atanacak kullanıcı AGENT rolünde olmalıdır. id: " + agentId);
+            throw new RuntimeException("Atanacak kullanıcı AGENT rolünde olmalıdır. id: " + request.getAgentId());
         }
         if (!agent.isActive()) {
-            throw new RuntimeException("Atanacak kullanıcı aktif değil. id: " + agentId);
+            throw new RuntimeException("Atanacak kullanıcı aktif değil. id: " + request.getAgentId());
         }
 
         TicketStatus currentStatus = ticket.getStatus();
@@ -117,9 +120,10 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
-    public Ticket changeStatus(Long ticketId, TicketStatus newStatus) {
+    public Ticket changeStatus(Long ticketId, ChangeStatusRequest request) {
         Ticket ticket = getTicketById(ticketId);
         TicketStatus currentStatus = ticket.getStatus();
+        TicketStatus newStatus = request.getNewStatus();
 
         if (currentStatus == newStatus) {
             throw new RuntimeException("Ticket zaten bu statüde: " + currentStatus);
