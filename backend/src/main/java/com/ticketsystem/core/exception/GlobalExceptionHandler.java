@@ -1,0 +1,58 @@
+package com.ticketsystem.core.exception;
+
+import com.ticketsystem.core.response.ApiResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import java.util.stream.Collectors;
+
+/** Uygulama genelinde exception'ları merkezi olarak yakalar ve standart yanıt döner. */
+@ControllerAdvice
+public class GlobalExceptionHandler {
+
+    /** İstenen kaynak bulunamadığında 404 döner. */
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ApiResponse<?>> handleResourceNotFoundException(
+            ResourceNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /** İş kuralı ihlalinde 400 döner. */
+    @ExceptionHandler(BusinessRuleException.class)
+    public ResponseEntity<ApiResponse<?>> handleBusinessRuleException(
+            BusinessRuleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /** Benzersizlik kısıtı ihlalinde 409 döner. */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse<?>> handleDuplicateResourceException(
+            DuplicateResourceException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /** @Valid ihlalinde field hatalarını birleştirerek 400 döner. */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<?>> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException ex) {
+        String message = ex.getBindingResult().getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining("; "));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(message));
+    }
+
+    /** Beklenmeyen tüm hatalar için 500 döner. */
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiResponse<?>> handleGenericException(Exception ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Beklenmeyen bir hata oluştu."));
+    }
+}
