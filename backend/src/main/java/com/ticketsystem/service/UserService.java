@@ -1,5 +1,6 @@
 package com.ticketsystem.service;
 
+import com.ticketsystem.dto.request.CreateUserRequest;
 import com.ticketsystem.entity.User;
 import com.ticketsystem.entity.enums.Role;
 
@@ -9,7 +10,7 @@ import java.util.List;
 public interface UserService {
 
     /** Yeni kullanıcı oluşturur ve kaydeder. */
-    User createUser(String firstName, String lastName, String email, String passwordHash, Role role);
+    User createUser(CreateUserRequest request);
 
     /** ID ile kullanıcı getirir. */
     User getUserById(Long id);
