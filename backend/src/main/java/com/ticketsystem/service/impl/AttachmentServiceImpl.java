@@ -1,5 +1,6 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.dto.request.SaveAttachmentRequest;
 import com.ticketsystem.entity.Attachment;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
@@ -30,43 +31,41 @@ public class AttachmentServiceImpl implements AttachmentService {
 
     @Override
     @Transactional
-    public Attachment saveAttachmentRecord(Long ticketId, Long uploadedById,
-                                           String fileName, String fileType,
-                                           String filePath, Long fileSize) {
-        Ticket ticket = ticketService.getTicketById(ticketId);
-        User uploadedBy = userService.getUserById(uploadedById);
+    public Attachment saveAttachmentRecord(SaveAttachmentRequest request) {
+        Ticket ticket = ticketService.getTicketById(request.getTicketId());
+        User uploadedBy = userService.getUserById(request.getUploadedById());
 
         if (!uploadedBy.isActive()) {
-            throw new RuntimeException("Pasif kullanıcı dosya ekleyemez. id: " + uploadedById);
+            throw new RuntimeException("Pasif kullanıcı dosya ekleyemez. id: " + request.getUploadedById());
         }
 
-        if (fileName == null || fileName.isBlank()) {
+        if (request.getFileName() == null || request.getFileName().isBlank()) {
             throw new RuntimeException("Dosya adı boş olamaz.");
         }
 
-        if (fileType == null || fileType.isBlank()) {
+        if (request.getFileType() == null || request.getFileType().isBlank()) {
             throw new RuntimeException("Dosya tipi boş olamaz.");
         }
 
-        if (filePath == null || filePath.isBlank()) {
+        if (request.getFilePath() == null || request.getFilePath().isBlank()) {
             throw new RuntimeException("Dosya yolu boş olamaz.");
         }
 
-        if (fileSize == null) {
+        if (request.getFileSize() == null) {
             throw new RuntimeException("Dosya boyutu boş olamaz.");
         }
 
-        if (fileSize <= 0) {
+        if (request.getFileSize() <= 0) {
             throw new RuntimeException("Dosya boyutu sıfırdan büyük olmalıdır.");
         }
 
         Attachment attachment = new Attachment();
         attachment.setTicket(ticket);
         attachment.setUploadedBy(uploadedBy);
-        attachment.setFileName(fileName);
-        attachment.setFileType(fileType);
-        attachment.setFilePath(filePath);
-        attachment.setFileSize(fileSize);
+        attachment.setFileName(request.getFileName());
+        attachment.setFileType(request.getFileType());
+        attachment.setFilePath(request.getFilePath());
+        attachment.setFileSize(request.getFileSize());
 
         return attachmentRepository.save(attachment);
     }

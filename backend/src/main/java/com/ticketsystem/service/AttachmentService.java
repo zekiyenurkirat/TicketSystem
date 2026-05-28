@@ -1,5 +1,6 @@
 package com.ticketsystem.service;
 
+import com.ticketsystem.dto.request.SaveAttachmentRequest;
 import com.ticketsystem.entity.Attachment;
 
 import java.util.List;
@@ -8,9 +9,7 @@ import java.util.List;
 public interface AttachmentService {
 
     /** Dosya meta bilgilerini kaydeder. */
-    Attachment saveAttachmentRecord(Long ticketId, Long uploadedById,
-                                    String fileName, String fileType,
-                                    String filePath, Long fileSize);
+    Attachment saveAttachmentRecord(SaveAttachmentRequest request);
 
     /** Ticket'a ait dosya kayıtlarını getirir. */
     List<Attachment> getAttachmentsByTicket(Long ticketId);
