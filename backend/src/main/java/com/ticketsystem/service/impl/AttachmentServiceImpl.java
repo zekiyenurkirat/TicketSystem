@@ -1,5 +1,6 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.core.exception.BusinessRuleException;
 import com.ticketsystem.dto.request.SaveAttachmentRequest;
 import com.ticketsystem.entity.Attachment;
 import com.ticketsystem.entity.Ticket;
@@ -36,27 +37,27 @@ public class AttachmentServiceImpl implements AttachmentService {
         User uploadedBy = userService.getUserById(request.getUploadedById());
 
         if (!uploadedBy.isActive()) {
-            throw new RuntimeException("Pasif kullanıcı dosya ekleyemez. id: " + request.getUploadedById());
+            throw new BusinessRuleException("Pasif kullanıcı dosya ekleyemez. id: " + request.getUploadedById());
         }
 
         if (request.getFileName() == null || request.getFileName().isBlank()) {
-            throw new RuntimeException("Dosya adı boş olamaz.");
+            throw new BusinessRuleException("Dosya adı boş olamaz.");
         }
 
         if (request.getFileType() == null || request.getFileType().isBlank()) {
-            throw new RuntimeException("Dosya tipi boş olamaz.");
+            throw new BusinessRuleException("Dosya tipi boş olamaz.");
         }
 
         if (request.getFilePath() == null || request.getFilePath().isBlank()) {
-            throw new RuntimeException("Dosya yolu boş olamaz.");
+            throw new BusinessRuleException("Dosya yolu boş olamaz.");
         }
 
         if (request.getFileSize() == null) {
-            throw new RuntimeException("Dosya boyutu boş olamaz.");
+            throw new BusinessRuleException("Dosya boyutu boş olamaz.");
         }
 
         if (request.getFileSize() <= 0) {
-            throw new RuntimeException("Dosya boyutu sıfırdan büyük olmalıdır.");
+            throw new BusinessRuleException("Dosya boyutu sıfırdan büyük olmalıdır.");
         }
 
         Attachment attachment = new Attachment();

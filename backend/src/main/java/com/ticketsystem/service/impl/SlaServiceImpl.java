@@ -1,5 +1,6 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.core.exception.ResourceNotFoundException;
 import com.ticketsystem.entity.SlaRule;
 import com.ticketsystem.entity.enums.Priority;
 import com.ticketsystem.repository.SlaRuleRepository;
@@ -23,7 +24,7 @@ public class SlaServiceImpl implements SlaService {
     @Transactional(readOnly = true)
     public SlaRule findActiveSlaRule(Priority priority) {
         return slaRuleRepository.findByPriorityAndActiveTrue(priority)
-                .orElseThrow(() -> new RuntimeException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "Aktif SLA kuralı bulunamadı: " + priority));
     }
 

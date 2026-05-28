@@ -1,5 +1,6 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.core.exception.BusinessRuleException;
 import com.ticketsystem.dto.request.AddCommentRequest;
 import com.ticketsystem.entity.Comment;
 import com.ticketsystem.entity.Ticket;
@@ -40,23 +41,23 @@ public class CommentServiceImpl implements CommentService {
         User author = userService.getUserById(request.getAuthorId());
 
         if (!author.isActive()) {
-            throw new RuntimeException("Pasif kullanıcı yorum ekleyemez. id: " + request.getAuthorId());
+            throw new BusinessRuleException("Pasif kullanıcı yorum ekleyemez. id: " + request.getAuthorId());
         }
 
         if (request.getContent() == null || request.getContent().isBlank()) {
-            throw new RuntimeException("Yorum içeriği boş olamaz.");
+            throw new BusinessRuleException("Yorum içeriği boş olamaz.");
         }
 
         if (request.getType() == null) {
-            throw new RuntimeException("Yorum tipi boş olamaz.");
+            throw new BusinessRuleException("Yorum tipi boş olamaz.");
         }
 
         Role authorRole = author.getRole();
         if (authorRole != Role.CUSTOMER && authorRole != Role.AGENT && authorRole != Role.MANAGER) {
-            throw new RuntimeException("Tanımlanamayan rol: " + authorRole);
+            throw new BusinessRuleException("Tanımlanamayan rol: " + authorRole);
         }
         if (authorRole == Role.CUSTOMER && request.getType() == CommentType.INTERNAL) {
-            throw new RuntimeException("CUSTOMER rolündeki kullanıcı INTERNAL yorum ekleyemez.");
+            throw new BusinessRuleException("CUSTOMER rolündeki kullanıcı INTERNAL yorum ekleyemez.");
         }
 
         Comment comment = new Comment();
@@ -84,7 +85,7 @@ public class CommentServiceImpl implements CommentService {
         } else if (requesterRole == Role.AGENT || requesterRole == Role.MANAGER) {
             return commentRepository.findByTicketOrderByCreatedAtAsc(ticket);
         } else {
-            throw new RuntimeException("Tanımlanamayan rol: " + requesterRole);
+            throw new BusinessRuleException("Tanımlanamayan rol: " + requesterRole);
         }
     }
 

@@ -1,5 +1,7 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.core.exception.DuplicateResourceException;
+import com.ticketsystem.core.exception.ResourceNotFoundException;
 import com.ticketsystem.dto.request.CreateUserRequest;
 import com.ticketsystem.entity.User;
 import com.ticketsystem.entity.enums.Role;
@@ -24,7 +26,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public User createUser(CreateUserRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Bu email adresi zaten kayıtlı: " + request.getEmail());
+            throw new DuplicateResourceException("Bu email adresi zaten kayıtlı: " + request.getEmail());
         }
         User user = new User();
         user.setFirstName(request.getFirstName());
@@ -40,14 +42,14 @@ public class UserServiceImpl implements UserService {
     @Transactional(readOnly = true)
     public User getUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı. id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı. id: " + id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Kullanıcı bulunamadı. email: " + email));
+                .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı. email: " + email));
     }
 
     @Override

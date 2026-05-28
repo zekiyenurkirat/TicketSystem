@@ -1,5 +1,7 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.core.exception.BusinessRuleException;
+import com.ticketsystem.core.exception.ResourceNotFoundException;
 import com.ticketsystem.dto.request.AssignTicketRequest;
 import com.ticketsystem.dto.request.ChangeStatusRequest;
 import com.ticketsystem.dto.request.CreateTicketRequest;
@@ -81,14 +83,14 @@ public class TicketServiceImpl implements TicketService {
     @Transactional(readOnly = true)
     public Ticket getTicketById(Long id) {
         return ticketRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Ticket bulunamadı. id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket bulunamadı. id: " + id));
     }
 
     @Override
     @Transactional(readOnly = true)
     public Ticket getTicketByTicketNumber(String ticketNumber) {
         return ticketRepository.findByTicketNumber(ticketNumber)
-                .orElseThrow(() -> new RuntimeException("Ticket bulunamadı. ticketNumber: " + ticketNumber));
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket bulunamadı. ticketNumber: " + ticketNumber));
     }
 
     @Override
@@ -98,10 +100,10 @@ public class TicketServiceImpl implements TicketService {
         User agent = userService.getUserById(request.getAgentId());
 
         if (agent.getRole() != Role.AGENT) {
-            throw new RuntimeException("Atanacak kullanıcı AGENT rolünde olmalıdır. id: " + request.getAgentId());
+            throw new BusinessRuleException("Atanacak kullanıcı AGENT rolünde olmalıdır. id: " + request.getAgentId());
         }
         if (!agent.isActive()) {
-            throw new RuntimeException("Atanacak kullanıcı aktif değil. id: " + request.getAgentId());
+            throw new BusinessRuleException("Atanacak kullanıcı aktif değil. id: " + request.getAgentId());
         }
 
         TicketStatus currentStatus = ticket.getStatus();
@@ -112,7 +114,7 @@ public class TicketServiceImpl implements TicketService {
         } else if (currentStatus == TicketStatus.ASSIGNED) {
             ticket.setAssignedTo(agent);
         } else {
-            throw new RuntimeException("Bu statüdeki ticket yeniden atanamaz: " + currentStatus);
+            throw new BusinessRuleException("Bu statüdeki ticket yeniden atanamaz: " + currentStatus);
         }
 
         return ticketRepository.save(ticket);
@@ -126,12 +128,12 @@ public class TicketServiceImpl implements TicketService {
         TicketStatus newStatus = request.getNewStatus();
 
         if (currentStatus == newStatus) {
-            throw new RuntimeException("Ticket zaten bu statüde: " + currentStatus);
+            throw new BusinessRuleException("Ticket zaten bu statüde: " + currentStatus);
         }
 
         Set<TicketStatus> allowed = VALID_TRANSITIONS.get(currentStatus);
         if (allowed == null || !allowed.contains(newStatus)) {
-            throw new RuntimeException("Geçersiz statü geçişi: " + currentStatus + " -> " + newStatus);
+            throw new BusinessRuleException("Geçersiz statü geçişi: " + currentStatus + " -> " + newStatus);
         }
 
         if (newStatus == TicketStatus.RESOLVED) {
