@@ -1,5 +1,6 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.dto.request.AddCommentRequest;
 import com.ticketsystem.entity.Comment;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
@@ -34,19 +35,19 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     @Transactional
-    public Comment addComment(Long ticketId, Long authorId, String content, CommentType type) {
-        Ticket ticket = ticketService.getTicketById(ticketId);
-        User author = userService.getUserById(authorId);
+    public Comment addComment(AddCommentRequest request) {
+        Ticket ticket = ticketService.getTicketById(request.getTicketId());
+        User author = userService.getUserById(request.getAuthorId());
 
         if (!author.isActive()) {
-            throw new RuntimeException("Pasif kullanıcı yorum ekleyemez. id: " + authorId);
+            throw new RuntimeException("Pasif kullanıcı yorum ekleyemez. id: " + request.getAuthorId());
         }
 
-        if (content == null || content.isBlank()) {
+        if (request.getContent() == null || request.getContent().isBlank()) {
             throw new RuntimeException("Yorum içeriği boş olamaz.");
         }
 
-        if (type == null) {
+        if (request.getType() == null) {
             throw new RuntimeException("Yorum tipi boş olamaz.");
         }
 
@@ -54,15 +55,15 @@ public class CommentServiceImpl implements CommentService {
         if (authorRole != Role.CUSTOMER && authorRole != Role.AGENT && authorRole != Role.MANAGER) {
             throw new RuntimeException("Tanımlanamayan rol: " + authorRole);
         }
-        if (authorRole == Role.CUSTOMER && type == CommentType.INTERNAL) {
+        if (authorRole == Role.CUSTOMER && request.getType() == CommentType.INTERNAL) {
             throw new RuntimeException("CUSTOMER rolündeki kullanıcı INTERNAL yorum ekleyemez.");
         }
 
         Comment comment = new Comment();
         comment.setTicket(ticket);
         comment.setAuthor(author);
-        comment.setContent(content);
-        comment.setType(type);
+        comment.setContent(request.getContent());
+        comment.setType(request.getType());
 
         return commentRepository.save(comment);
     }

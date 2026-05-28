@@ -1,7 +1,7 @@
 package com.ticketsystem.service;
 
+import com.ticketsystem.dto.request.AddCommentRequest;
 import com.ticketsystem.entity.Comment;
-import com.ticketsystem.entity.enums.CommentType;
 
 import java.util.List;
 
@@ -9,7 +9,7 @@ import java.util.List;
 public interface CommentService {
 
     /** Ticket'a yorum ekler. */
-    Comment addComment(Long ticketId, Long authorId, String content, CommentType type);
+    Comment addComment(AddCommentRequest request);
 
     /** Ticket yorumlarını requester rolüne göre filtreli getirir. */
     List<Comment> getCommentsForTicket(Long ticketId, Long requesterId);
