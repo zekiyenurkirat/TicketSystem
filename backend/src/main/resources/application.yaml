@@ -13,19 +13,18 @@ spring:
 
   jpa:
     hibernate:
-      # -----------------------------------------------------------
-      # GEÇİCİ AYAR — YALNIZCA GELİŞTİRME / ÖĞRENME AŞAMASI İÇİN
-      # 'update' → Hibernate, uygulama her başlatıldığında eksik
-      # tabloları ve sütunları otomatik oluşturur / günceller.
-      # Üretim ortamında ve Flyway eklendiğinde (Faz 10) bu değer
-      # 'validate' veya 'none' yapılacaktır.
-      # -----------------------------------------------------------
-      ddl-auto: update
+      # Flyway veritabanı şemasını yönetir.
+      # Hibernate yalnızca entity-şema uyumluluğunu doğrular.
+      ddl-auto: validate
     show-sql: true          # Çalışan SQL sorgularını konsolda gösterir (öğrenme için faydalı)
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true    # SQL'i girintili ve okunabilir biçimde gösterir
+
+  flyway:
+    enabled: true         # Flyway etkin; migration'lar uygulama başlatılırken otomatik uygulanır
+    clean-disabled: true  # Güvenlik: flyway clean komutu devre dışı, tüm şema silme engellenir
 
 server:
   port: 8080
