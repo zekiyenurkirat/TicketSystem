@@ -29,6 +29,11 @@ spring:
 server:
   port: 8080
 
+# JWT yapılandırması — token secret ve geçerlilik süresi ortam değişkeninden okunur
+jwt:
+  secret:     ${JWT_SECRET}  # Zorunlu: JWT_SECRET ortam değişkeni olarak sağlanmalıdır
+  expiration: 86400000       # Token geçerlilik süresi: 86.400.000 ms = 24 saat
+
 # Swagger UI: http://localhost:8080/swagger-ui/index.html
 # API Docs:   http://localhost:8080/api-docs
 springdoc:
