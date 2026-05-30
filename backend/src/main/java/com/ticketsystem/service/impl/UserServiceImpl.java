@@ -1,5 +1,6 @@
 package com.ticketsystem.service.impl;
 
+import com.ticketsystem.core.exception.BusinessRuleException;
 import com.ticketsystem.core.exception.DuplicateResourceException;
 import com.ticketsystem.core.exception.ResourceNotFoundException;
 import com.ticketsystem.dto.request.CreateUserRequest;
@@ -28,6 +29,9 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public User createUser(CreateUserRequest request) {
+        if (request.getRole() != Role.CUSTOMER) {
+            throw new BusinessRuleException("Kayıt sırasında yalnızca CUSTOMER rolü seçilebilir.");
+        }
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new DuplicateResourceException("Bu email adresi zaten kayıtlı: " + request.getEmail());
         }
