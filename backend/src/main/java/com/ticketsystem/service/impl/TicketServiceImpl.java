@@ -133,6 +133,12 @@ public class TicketServiceImpl implements TicketService {
         TicketStatus currentStatus = ticket.getStatus();
         TicketStatus newStatus = request.getNewStatus();
 
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER
+                && !(currentStatus == TicketStatus.RESOLVED && newStatus == TicketStatus.CLOSED)) {
+            throw new BusinessRuleException("Müşteri yalnızca çözümlenmiş kendi ticketını kapatabilir.");
+        }
+
         if (currentStatus == newStatus) {
             throw new BusinessRuleException("Ticket zaten bu statüde: " + currentStatus);
         }
