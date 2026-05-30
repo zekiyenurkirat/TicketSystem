@@ -3,6 +3,7 @@ package com.ticketsystem.core.exception;
 import com.ticketsystem.core.response.ApiResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -47,6 +48,13 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining("; "));
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.error(message));
+    }
+
+    /** Yanlış email veya şifre girişinde 401 döner. */
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ApiResponse<?>> handleBadCredentialsException(BadCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("Email veya şifre hatalı."));
     }
 
     /** Beklenmeyen tüm hatalar için 500 döner. */
