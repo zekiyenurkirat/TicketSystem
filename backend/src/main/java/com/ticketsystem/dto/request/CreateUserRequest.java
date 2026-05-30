@@ -30,7 +30,8 @@ public class CreateUserRequest {
     private String email;
 
     @NotBlank
-    private String passwordHash;
+    @Size(min = 8, max = 72)
+    private String password;
 
     @NotNull
     private Role role;
