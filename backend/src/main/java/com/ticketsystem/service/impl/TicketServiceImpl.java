@@ -14,6 +14,8 @@ import com.ticketsystem.repository.TicketRepository;
 import com.ticketsystem.service.SlaService;
 import com.ticketsystem.service.TicketService;
 import com.ticketsystem.service.UserService;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -82,8 +84,10 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional(readOnly = true)
     public Ticket getTicketById(Long id) {
-        return ticketRepository.findById(id)
+        Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket bulunamadı. id: " + id));
+        validateTicketAccessForCustomer(ticket);
+        return ticket;
     }
 
     @Override
@@ -183,6 +187,19 @@ public class TicketServiceImpl implements TicketService {
     @Transactional(readOnly = true)
     public List<Ticket> getTicketsByStatusAndPriority(TicketStatus status, Priority priority) {
         return ticketRepository.findByStatusAndPriority(status, priority);
+    }
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userService.getUserByEmail(email);
+    }
+
+    private void validateTicketAccessForCustomer(Ticket ticket) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER
+                && !ticket.getCreatedBy().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("Bu ticket'a erişim yetkiniz yok.");
+        }
     }
 
     private String generateTicketNumber() {
