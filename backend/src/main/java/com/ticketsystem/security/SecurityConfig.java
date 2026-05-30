@@ -43,6 +43,14 @@ public class SecurityConfig {
                         objectMapper.writeValueAsString(ApiResponse.error("Kimlik doğrulama gerekli."))
                     );
                 })
+                .accessDeniedHandler((request, response, accessDeniedException) -> {
+                    response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                    response.setContentType("application/json");
+                    response.setCharacterEncoding("UTF-8");
+                    response.getWriter().write(
+                        objectMapper.writeValueAsString(ApiResponse.error("Bu işlem için yetkiniz yok."))
+                    );
+                })
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
