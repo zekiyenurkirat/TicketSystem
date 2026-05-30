@@ -93,8 +93,10 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional(readOnly = true)
     public Ticket getTicketByTicketNumber(String ticketNumber) {
-        return ticketRepository.findByTicketNumber(ticketNumber)
+        Ticket ticket = ticketRepository.findByTicketNumber(ticketNumber)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket bulunamadı. ticketNumber: " + ticketNumber));
+        validateTicketAccessForCustomer(ticket);
+        return ticket;
     }
 
     @Override
