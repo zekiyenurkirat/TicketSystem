@@ -168,6 +168,11 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional(readOnly = true)
     public List<Ticket> getTicketsByCreatedBy(Long userId) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER
+                && !currentUser.getId().equals(userId)) {
+            throw new AccessDeniedException("Bu kullanıcının ticketlarını görüntüleme yetkiniz yok.");
+        }
         User user = userService.getUserById(userId);
         return ticketRepository.findByCreatedBy(user);
     }
