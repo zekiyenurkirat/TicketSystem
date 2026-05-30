@@ -66,6 +66,11 @@ public class TicketServiceImpl implements TicketService {
     @Override
     @Transactional
     public Ticket createTicket(CreateTicketRequest request) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER
+                && !currentUser.getId().equals(request.getCreatedById())) {
+            throw new AccessDeniedException("Yalnızca kendi adınıza ticket oluşturabilirsiniz.");
+        }
         User createdBy = userService.getUserById(request.getCreatedById());
 
         Ticket ticket = new Ticket();
