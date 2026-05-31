@@ -8,6 +8,8 @@ import com.ticketsystem.entity.User;
 import com.ticketsystem.entity.enums.Role;
 import com.ticketsystem.repository.UserRepository;
 import com.ticketsystem.service.UserService;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public User getUserById(Long id) {
+        User currentUser = getCurrentUser();
+        if (currentUser != null && currentUser.getRole() == Role.CUSTOMER
+                && !currentUser.getId().equals(id)) {
+            throw new AccessDeniedException("Yalnızca kendi profilinizi görüntüleyebilirsiniz.");
+        }
         return userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı. id: " + id));
     }
@@ -55,6 +62,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public User getUserByEmail(String email) {
+        User currentUser = getCurrentUser();
+        if (currentUser != null && currentUser.getRole() == Role.CUSTOMER
+                && !currentUser.getEmail().equals(email)) {
+            throw new AccessDeniedException("Yalnızca kendi profilinizi görüntüleyebilirsiniz.");
+        }
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Kullanıcı bulunamadı. email: " + email));
     }
@@ -77,5 +89,14 @@ public class UserServiceImpl implements UserService {
         User user = getUserById(id);
         user.setActive(false);
         return userRepository.save(user);
+    }
+
+    private User getCurrentUser() {
+        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return null;
+        }
+        String email = authentication.getName();
+        return userRepository.findByEmail(email).orElse(null);
     }
 }
