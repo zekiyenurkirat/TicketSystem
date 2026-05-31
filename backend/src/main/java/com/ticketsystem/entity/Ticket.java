@@ -1,7 +1,9 @@
 package com.ticketsystem.entity;
 
+import com.ticketsystem.entity.enums.Impact;
 import com.ticketsystem.entity.enums.Priority;
 import com.ticketsystem.entity.enums.TicketStatus;
+import com.ticketsystem.entity.enums.Urgency;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -38,10 +40,30 @@ public class Ticket extends BaseEntity {
     @Column(name = "status", nullable = false)
     private TicketStatus status;
 
-    /** Ticket'ın öncelik seviyesi. */
+    /** Ticket'ın aktif/final öncelik seviyesi. SLA hesaplamasının dayanağıdır. */
     @Enumerated(EnumType.STRING)
     @Column(name = "priority", nullable = false)
     private Priority priority;
+
+    /** Ticket oluşturulurken creator tarafından seçilen öncelik seviyesi. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "customer_priority")
+    private Priority customerPriority;
+
+    /** Ticket oluşturulurken bildirilen iş etkisi seviyesi. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "impact")
+    private Impact impact;
+
+    /** Ticket oluşturulurken bildirilen aciliyet seviyesi. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "urgency")
+    private Urgency urgency;
+
+    /** Impact ve urgency matrisinden sistem tarafından hesaplanan önerilen öncelik. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "suggested_priority")
+    private Priority suggestedPriority;
 
     /** Ticket'ı oluşturan kullanıcı. */
     @ManyToOne(fetch = FetchType.LAZY)
@@ -72,4 +94,17 @@ public class Ticket extends BaseEntity {
     /** Ticket'ın CLOSED statüsüne geçtiği zaman. */
     @Column(name = "closed_at")
     private LocalDateTime closedAt;
+
+    /** AGENT veya MANAGER tarafından priority review sırasında eklenen triage notu. */
+    @Column(name = "priority_review_note", columnDefinition = "TEXT")
+    private String priorityReviewNote;
+
+    /** Priority review işleminin gerçekleştiği zaman. */
+    @Column(name = "priority_reviewed_at")
+    private LocalDateTime priorityReviewedAt;
+
+    /** Priority review işlemini gerçekleştiren kullanıcı (AGENT veya MANAGER). */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "priority_reviewed_by_id", nullable = true)
+    private User priorityReviewedBy;
 }
