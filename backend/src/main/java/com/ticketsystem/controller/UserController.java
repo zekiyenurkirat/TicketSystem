@@ -46,6 +46,26 @@ public class UserController {
                 .body(ApiResponse.success(response, "Kullanıcı başarıyla oluşturuldu."));
     }
 
+    /** MANAGER tarafından herhangi bir rolle kullanıcı oluşturur. */
+    @Operation(summary = "MANAGER tarafından kullanıcı oluşturur",
+               description = "Yalnızca MANAGER rolüne sahip kullanıcılar çağırabilir. AGENT, MANAGER veya CUSTOMER rolünde kullanıcı oluşturulabilir.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Kullanıcı başarıyla oluşturuldu."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validasyon hatası veya geçersiz istek."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Kimlik doğrulama gerekli."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Bu işlem için yetkiniz yok."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Bu e-posta adresiyle kayıtlı kullanıcı zaten mevcut."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Beklenmeyen bir hata oluştu.")
+    })
+    @PostMapping("/admin")
+    public ResponseEntity<ApiResponse<UserResponse>> createUserByManager(
+            @RequestBody @Valid CreateUserRequest request) {
+        User user = userService.createUserByManager(request);
+        UserResponse response = UserResponse.from(user);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response, "Kullanıcı başarıyla oluşturuldu."));
+    }
+
     /** ID ile kullanıcı getirir. */
     @Operation(summary = "ID ile kullanıcı getirir",
                description = "Belirtilen ID'ye sahip kullanıcıyı döner.")

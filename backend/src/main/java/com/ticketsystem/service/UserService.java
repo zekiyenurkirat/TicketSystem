@@ -26,4 +26,7 @@ public interface UserService {
 
     /** Kullanıcıyı pasife alır. */
     User deactivateUser(Long id);
+
+    /** MANAGER tarafından herhangi bir rolle yeni kullanıcı oluşturur. */
+    User createUserByManager(CreateUserRequest request);
 }
