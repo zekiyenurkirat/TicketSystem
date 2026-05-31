@@ -16,3 +16,6 @@ target/
 
 # VS Code
 .vscode/
+
+# Upload klasörü — gerçek dosyalar Git'e girmez
+uploads/
