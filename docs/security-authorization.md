@@ -108,9 +108,72 @@ URL kurallarından geçen istekler için servis katmanında `getCurrentUser()` h
 
 | Endpoint | CUSTOMER Kontrolü |
 |----------|------------------|
+| `POST /attachments/upload` | Yalnızca kendi ticket'ına upload; başkasının ticket'ı → 403 |
+| `GET /attachments/{id}/download` | Yalnızca kendi ticket'ının dosyası; başkasının ticket'ı → 403 |
 | `GET /attachments/ticket/{ticketId}` | Yalnızca kendi ticket'ının attachment'ları (ticket ownership zinciri) |
 | `GET /attachments/uploader/{userId}` | Yalnızca kendi `userId`; başkasının → 403 |
-| `POST /attachments` | Ticket + uploader ownership zincirleri |
+
+---
+
+## Attachment Upload ve Download Güvenliği
+
+### Endpointler
+
+| Endpoint | Method | Content-Type | Açıklama |
+|----------|--------|--------------|---------|
+| `/api/v1/attachments/upload` | `POST` | `multipart/form-data` | Ticket'a gerçek dosya yükleme; `ticketId` (form parametresi) ve `file` (multipart part) zorunludur. JWT token gerekli. |
+| `/api/v1/attachments/{id}/download` | `GET` | — | Attachment'ı binary stream olarak indirme. `ApiResponse` wrapper kullanılmaz; `ResponseEntity<Resource>` döner. Hata durumlarında (401, 403, 404) `GlobalExceptionHandler` standart `ApiResponse.error()` formatında yanıt üretir. JWT token gerekli. |
+
+### Sunucu Tarafında Belirlenen Alanlar
+
+Dosya yüklenirken aşağıdaki alanların tümü sunucu tarafında atanır; client'ın gönderdiği değerler işleme alınmaz:
+
+| Alan | Kaynak |
+|------|--------|
+| `uploadedBy` | JWT token'daki kimlik — `SecurityContextHolder` üzerinden alınır |
+| `fileName` | `MultipartFile.getOriginalFilename()` — multipart header'ından |
+| `fileType` | `MultipartFile.getContentType()` — doğrulanmış MIME |
+| `fileSize` | `MultipartFile.getSize()` — sunucu tarafı ölçüm |
+| `filePath` | UUID.ext formatında üretilen depolama adı |
+
+> **Güvenlik notu:** `filePath` alanı hiçbir API yanıtına dahil edilmez. Client, dosyanın fiziksel depolama yolunu asla göremez. İndirme işlemi yalnızca attachment ID üzerinden `GET /api/v1/attachments/{id}/download` endpoint'i ile yapılır.
+
+### Dosya Yükleme Kısıtlamaları
+
+Yükleme isteği iki katmanda doğrulanır:
+
+- **Spring parse katmanı:** İstek boyutu `10 MB` limitini aşarsa multipart parse aşamasında reddedilir; servis katmanına ulaşmaz.
+- **Servis katmanı:** Boyut, uzantı, MIME type ve dosya adı güvenlik kontrolleri uygulanır.
+
+| Kısıt | Sonuç | Mesaj |
+|-------|-------|-------|
+| Boş dosya | **400** | `"Yüklenecek dosya boş olamaz."` |
+| Dosya boyutu > 10 MB | **400** | `"Dosya boyutu 10 MB sınırını aşamaz."` |
+| Dosya adı boş | **400** | `"Dosya adı boş olamaz."` |
+| Path traversal (`..`, `/`, `\`) içeren dosya adı | **400** | `"Güvensiz dosya adı."` |
+| İzin verilmeyen uzantı | **400** | `"Bu dosya türüne izin verilmiyor."` |
+| Uzantı ile MIME type uyumsuzluğu | **400** | `"Dosya türü ve uzantısı uyuşmuyor."` |
+
+### İzin Verilen Dosya Türleri
+
+Whitelist tabanlı kontrol uygulanır. Uzantı ve MIME type birebir eşleşmek zorundadır:
+
+| Uzantı | İzin Verilen MIME |
+|--------|------------------|
+| `pdf` | `application/pdf` |
+| `doc` | `application/msword` |
+| `docx` | `application/vnd.openxmlformats-officedocument.wordprocessingml.document` |
+| `png` | `image/png` |
+| `jpg`, `jpeg` | `image/jpeg` |
+| `txt` | `text/plain` |
+
+`.exe`, `.bat`, `.sh`, `.jar`, `.msi`, `.zip` gibi bu listede yer almayan tüm uzantılar reddedilir.
+
+### Fiziksel Depolama
+
+- Fiziksel dosyalar `UUID.ext` formatında adlandırılır (örn: `a1b2c3d4-e5f6-7890-abcd-ef1234567890.pdf`). Client, orijinal dosya adını bu formattan tahmin edemez.
+- DB'ye yalnızca `uuid.ext` kısa adı kaydedilir; mutlak yol yazılmaz. Bu sayede `app.upload.dir` konfigürasyonu değişse bile DB kayıtları geçerliliğini korur.
+- Depolama dizini sürüm kontrolüne dahil edilmez.
 
 ---
 
@@ -171,9 +234,10 @@ Review sonrasında:
 | `GET /api/v1/comments/ticket/{ticketId}` | Kendi ticket'ının yalnızca EXTERNAL yorumları |
 | `GET /api/v1/comments/author/{authorId}` | Yalnızca kendi `authorId` |
 | `POST /api/v1/comments` | Kendi ticket'ına, yalnızca EXTERNAL |
-| `GET /api/v1/attachments/ticket/{ticketId}` | Kendi ticket'ının attachment'ları |
+| `POST /api/v1/attachments/upload` | Kendi ticket'ına multipart dosya yükleme |
+| `GET /api/v1/attachments/{id}/download` | Kendi ticket'ının dosyasını indirme |
+| `GET /api/v1/attachments/ticket/{ticketId}` | Kendi ticket'ının attachment listesi |
 | `GET /api/v1/attachments/uploader/{userId}` | Yalnızca kendi `userId` |
-| `POST /api/v1/attachments` | Kendi ticket'ı + kendi `uploadedById` |
 
 ---
 
@@ -194,6 +258,7 @@ Review sonrasında:
 | Başka `authorId` ile yorum listesi çekme | **403** | Servis ownership kontrolü |
 | INTERNAL yorum ekleme | **400** | İş kuralı ihlali |
 | Başkasının ticket attachment'larını görme | **403** | Ticket ownership zinciri |
+| Başkasının ticket dosyasını `GET /{id}/download` ile indirme | **403** | Ticket ownership zinciri |
 | Başka `uploaderId` ile attachment listesi çekme | **403** | Servis ownership kontrolü |
 | URL bazlı AGENT/MANAGER endpoint'leri | **403** | SecurityConfig URL kuralı |
 | `customerPriority=CRITICAL` veya `BLOCKER` ile ticket oluşturma | **400** | İş kuralı ihlali |
@@ -205,9 +270,11 @@ Review sonrasında:
 
 - Tüm ticket'ları listeleme, görüntüleme ve geçerli statü geçişlerini yapma
 - EXTERNAL + INTERNAL yorum ekleme ve listeleme
+- Herhangi ticket'a `POST /api/v1/attachments/upload` ile dosya yükleme (ownership kısıtsız)
+- Herhangi attachment'ı `GET /api/v1/attachments/{id}/download` ile indirme (ownership kısıtsız)
 - Tüm ticket ve kullanıcı attachment'larını listeleme
 - `GET /api/v1/users/role/{role}/active` — aktif kullanıcı listesi
-- Herhangi bir `createdById` veya `uploadedById` ile kayıt oluşturma
+- Herhangi bir `createdById` ile ticket oluşturma
 - `PATCH /api/v1/tickets/{id}/priority-review` — ticket'ın aktif önceliğini review edebilir; `dueDate` yeniden hesaplanır
 
 AGENT kullanıcı oluşturma konusunda kısıtlıdır: `POST /api/v1/users/admin` çağrılamaz → **403**. AGENT, kendi başına veya başka bir AGENT ya da MANAGER hesabı oluşturamaz.
@@ -233,7 +300,7 @@ AGENT'ın tüm yetkileri artı:
 | **401** | Token yok, geçersiz veya süresi dolmuş | `AuthenticationEntryPoint` |
 | **403** | Rol yetersiz (URL kuralı ihlali) | `AccessDeniedHandler` |
 | **403** | Başkasının verisine erişim (ownership ihlali) | `GlobalExceptionHandler` → `AccessDeniedException` |
-| **400** | İş kuralı ihlali (geçersiz statü geçişi, yanlış rol, INTERNAL yorum, CUSTOMER tarafından CRITICAL/BLOCKER priority seçimi) | `GlobalExceptionHandler` → `BusinessRuleException` |
+| **400** | İş kuralı ihlali: geçersiz statü geçişi, yanlış rol, INTERNAL yorum, CUSTOMER tarafından CRITICAL/BLOCKER priority seçimi, dosya validasyon ihlali (boş dosya, boyut aşımı, izin verilmeyen uzantı, MIME uyumsuzluğu, path traversal) | `GlobalExceptionHandler` → `BusinessRuleException` veya `MaxUploadSizeExceededException` |
 | **404** | Kaynak bulunamadı | `GlobalExceptionHandler` → `ResourceNotFoundException` |
 | **409** | Email adresi zaten kayıtlı | `GlobalExceptionHandler` → `DuplicateResourceException` |
 
@@ -273,6 +340,22 @@ Doğrulanan önemli güvenlik senaryoları:
 | CUSTOMER | `PATCH /tickets/{id}/priority-review` | **403** | SecurityConfig URL kuralı |
 | Herhangi | Token olmadan `PATCH /tickets/{id}/priority-review` | **401** | Authentication katmanı |
 | AGENT | `GET /tickets/priority/BLOCKER` | **200** | Aktif `priority`'ye göre filtre doğru çalışıyor |
+| CUSTOMER | `POST /attachments/upload` (kendi ticket'ı, geçerli .txt) | **201** | Upload başarılı; `filePath` response'ta görünmez |
+| CUSTOMER | `POST /attachments/upload` (başkasının ticket'ı) | **403** | Ticket ownership zinciri devreye girer |
+| AGENT | `POST /attachments/upload` (herhangi ticket) | **201** | AGENT ownership kısıtsız |
+| MANAGER | `POST /attachments/upload` (herhangi ticket) | **201** | MANAGER ownership kısıtsız |
+| Anonim | `POST /attachments/upload` (token yok) | **401** | Authentication katmanı |
+| CUSTOMER | `GET /attachments/{id}/download` (kendi dosyası) | **200** | Binary stream; `Content-Disposition` orijinal dosya adıyla |
+| CUSTOMER | `GET /attachments/{id}/download` (başkasının ticket dosyası) | **403** | Ticket ownership zinciri devreye girer |
+| AGENT | `GET /attachments/{id}/download` (herhangi attachment) | **200** | AGENT ownership kısıtsız |
+| MANAGER | `GET /attachments/{id}/download` (herhangi attachment) | **200** | MANAGER ownership kısıtsız |
+| Anonim | `GET /attachments/{id}/download` (token yok) | **401** | Authentication katmanı |
+| Herhangi | `POST /attachments/upload` `.exe` uzantılı dosya | **400** | `"Bu dosya türüne izin verilmiyor."` |
+| Herhangi | `POST /attachments/upload` boş dosya | **400** | `"Yüklenecek dosya boş olamaz."` |
+| Herhangi | `POST /attachments/upload` 11 MB dosya | **400** | `"Dosya boyutu 10 MB sınırını aşamaz."` |
+| Herhangi | `POST /attachments/upload` path traversal dosya adı (`../../evil.txt`) | **400** | `"Güvensiz dosya adı."` |
+| Herhangi | `POST /attachments/upload` MIME/uzantı uyumsuzluğu (`.txt` + `image/png`) | **400** | `"Dosya türü ve uzantısı uyuşmuyor."` |
+| Herhangi | `GET /attachments/99999/download` (var olmayan ID) | **404** | `"Attachment bulunamadı. id: 99999"` |
 
 ---
 
@@ -320,7 +403,6 @@ Bu projenin geliştirme ortamında ilk MANAGER hesabı doğrudan veritabanına e
 |------|---------|
 | `requesterId` query param | `GET /comments/ticket/{id}?requesterId=X` imzasında kalıyor; artık güvenlik kararı için kullanılmıyor ama interface/controller'dan kaldırılmadı. Ayrı refactoring fazına bırakıldı. |
 | `addComment.authorId` | Request body'den alınıyor; token'dan otomatik atanabilir. |
-| `saveAttachment.uploadedById` | Request body'den alınıyor; token'dan otomatik atanabilir. |
 | İlk MANAGER hesabı | `POST /api/v1/users/admin` yalnızca MANAGER tokenıyla erişilebilir. İlk MANAGER hesabı bootstrap, seed data veya doğrudan veritabanı kaydıyla oluşturulmalıdır. Kod içine hardcoded admin bilgisi eklenmemelidir. |
 | `isActive` tutarlılığı | Pasif kullanıcının tüm işlemlerden engellenmesi için kontroller genişletilebilir. |
 | Rate limiting | Brute-force koruması production öncesi eklenebilir. |
@@ -330,4 +412,4 @@ Bu projenin geliştirme ortamında ilk MANAGER hesabı doğrudan veritabanına e
 
 ## Özet
 
-TicketSystem'de JWT authentication altyapısının üzerine iki katmanlı yetkilendirme eklendi. `SecurityFilterChain` ile URL bazlı rol kuralları ve servis katmanında `SecurityContextHolder` tabanlı ownership kontrolleri bir arada çalışarak CUSTOMER, AGENT ve MANAGER rollerinin güvenli veri erişim sınırları tanımlandı. Priority Triage System ile CUSTOMER priority seçimi kısıtlanmış; AGENT ve MANAGER ise `priority-review` endpointi üzerinden ticket'ların aktif önceliğini güncelleyebilir ve `dueDate`'i yeniden hesaplayabilir hale gelmiştir. Tüm kontroller runtime testlerle doğrulandı.
+TicketSystem'de JWT authentication altyapısının üzerine iki katmanlı yetkilendirme eklendi. `SecurityFilterChain` ile URL bazlı rol kuralları ve servis katmanında `SecurityContextHolder` tabanlı ownership kontrolleri bir arada çalışarak CUSTOMER, AGENT ve MANAGER rollerinin güvenli veri erişim sınırları tanımlandı. Priority Triage System ile CUSTOMER priority seçimi kısıtlanmış; AGENT ve MANAGER ise `priority-review` endpointi üzerinden ticket'ların aktif önceliğini güncelleyebilir ve `dueDate`'i yeniden hesaplayabilir hale gelmiştir. Gerçek dosya yükleme ve indirme işlemleri `multipart/form-data` ile desteklenmekte; `uploadedBy`, `fileName`, `fileType`, `fileSize` ve `filePath` alanlarının tümü sunucu tarafında belirlenmekte, fiziksel depolama yolu client'a hiçbir zaman açılmamaktadır. Tüm kontroller runtime testlerle doğrulandı.
