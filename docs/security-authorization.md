@@ -42,6 +42,7 @@ HTTP İsteği → JwtAuthenticationFilter → SecurityFilterChain (URL kuralı) 
 
 | Endpoint | Açıklama |
 |----------|---------|
+| `POST /api/v1/users/admin` | Yetkili kullanıcı oluşturma (AGENT, MANAGER veya CUSTOMER) |
 | `PATCH /api/v1/users/{id}/deactivate` | Kullanıcı pasife alma |
 | `GET /api/v1/users/role/{role}` | Role göre tüm kullanıcıları listeleme |
 | `PATCH /api/v1/tickets/{id}/assign` | Ticket atama |
@@ -61,8 +62,10 @@ HTTP İsteği → JwtAuthenticationFilter → SecurityFilterChain (URL kuralı) 
 | Endpoint | Açıklama |
 |----------|---------|
 | `POST /api/v1/auth/login` | Giriş ve token alma |
-| `POST /api/v1/users` | Public kayıt (yalnızca CUSTOMER rolü oluşturulabilir) |
+| `POST /api/v1/users` | Public kayıt — yalnızca `CUSTOMER` rolü oluşturulabilir |
 | `/swagger-ui/**`, `/v3/api-docs/**` | API dokümantasyonu |
+
+> **Not:** `POST /api/v1/users` self-registration içindir ve yalnızca `CUSTOMER` oluşturur. `AGENT` veya `MANAGER` oluşturmak için `POST /api/v1/users/admin` kullanılmalıdır; bu endpoint MANAGER tokenı gerektirir.
 
 ### Kimlik Doğrulama Gerektiren Endpointler
 
@@ -141,7 +144,8 @@ URL kurallarından geçen istekler için servis katmanında `getCurrentUser()` h
 | Başkasının ticket statüsünü değiştirme | **403** | Ownership zinciri devreye girer |
 | `RESOLVED→CLOSED` dışında statü geçişi | **400** | İş kuralı ihlali |
 | Başka kullanıcı adına ticket oluşturma (`createdById` manipülasyonu) | **403** | Servis ownership kontrolü |
-| `role=AGENT` veya `role=MANAGER` ile public kayıt | **400** | İş kuralı ihlali |
+| `role=AGENT` veya `role=MANAGER` ile public kayıt (`POST /users`) | **400** | İş kuralı ihlali |
+| `POST /api/v1/users/admin` endpointini çağırma | **403** | SecurityConfig MANAGER-only URL kuralı |
 | Başkasının profilini ID ile görme | **403** | Servis ownership kontrolü |
 | Başkasının profilini email ile görme | **403** | Servis ownership kontrolü |
 | Başkasının ticket yorumlarını görme | **403** | Ticket ownership zinciri |
@@ -161,12 +165,15 @@ URL kurallarından geçen istekler için servis katmanında `getCurrentUser()` h
 - `GET /api/v1/users/role/{role}/active` — aktif kullanıcı listesi
 - Herhangi bir `createdById` veya `uploadedById` ile kayıt oluşturma
 
+AGENT kullanıcı oluşturma konusunda kısıtlıdır: `POST /api/v1/users/admin` çağrılamaz → **403**. AGENT, kendi başına veya başka bir AGENT ya da MANAGER hesabı oluşturamaz.
+
 ---
 
 ## MANAGER Yetkileri
 
 AGENT'ın tüm yetkileri artı:
 
+- `POST /api/v1/users/admin` — `AGENT`, `MANAGER` veya `CUSTOMER` rolünde yeni kullanıcı oluşturma
 - `GET /api/v1/users/role/{role}` — role göre tüm kullanıcıları listeleme (aktif + pasif)
 - `PATCH /api/v1/users/{id}/deactivate` — kullanıcıyı pasife alma
 - `PATCH /api/v1/tickets/{id}/assign` — ticket'ı bir AGENT'a atama
@@ -204,6 +211,12 @@ Doğrulanan önemli güvenlik senaryoları:
 | Herhangi | Token olmadan istek | **401** | Authentication katmanı |
 | AGENT | `GET /tickets/{herhangi}` | **200** | AGENT davranışı bozulmadı |
 | MANAGER | `PATCH /users/{id}/deactivate` | **200** | MANAGER yetkisi çalışıyor |
+| MANAGER | `POST /users/admin` `role=AGENT` | **201** | AGENT kullanıcı oluşturma başarılı |
+| MANAGER | `POST /users/admin` `role=MANAGER` | **201** | MANAGER kullanıcı oluşturma başarılı |
+| AGENT | `POST /users/admin` | **403** | MANAGER-only URL kuralı |
+| CUSTOMER | `POST /users/admin` | **403** | MANAGER-only URL kuralı |
+| Herhangi | Token olmadan `POST /users/admin` | **401** | Authentication katmanı |
+| Herhangi | `POST /users` `role=AGENT` | **400** | Public kayıt CUSTOMER-only kısıtı korunuyor |
 
 ---
 
@@ -230,6 +243,21 @@ Bu sonsuz döngü `StackOverflowError`'a yol açardı. Çözüm: `userRepository
 
 ---
 
+## İlk MANAGER Hesabı
+
+`POST /api/v1/users` public endpoint yalnızca `CUSTOMER` oluşturur. `POST /api/v1/users/admin` ise MANAGER tokenı gerektirir. Bu tasarım gereği, sistemdeki ilk MANAGER hesabı uygulama üzerinden oluşturulamaz.
+
+Gerçek sistemlerde ilk MANAGER hesabı şu yollardan biriyle oluşturulur:
+
+- **Seed data / migration:** Uygulama başlangıcında veritabanına BCrypt hashli kayıt eklenir.
+- **Bootstrap script:** Tek seferlik çalışan yönetici kayıt akışı.
+- **Merkezi kimlik yönetimi:** Keycloak, Active Directory gibi harici sistemden sağlanır.
+- **Doğrudan veritabanı kaydı:** Geliştirme ortamında DBA tarafından eklenir.
+
+Bu projenin geliştirme ortamında ilk MANAGER hesabı doğrudan veritabanına eklenerek oluşturulmuş ve tüm testler bu hesapla doğrulanmıştır. Kod içine hardcoded admin bilgisi eklenmez.
+
+---
+
 ## Bilinen Kısıtlamalar ve Gelecek Çalışmalar
 
 | Konu | Açıklama |
@@ -237,7 +265,7 @@ Bu sonsuz döngü `StackOverflowError`'a yol açardı. Çözüm: `userRepository
 | `requesterId` query param | `GET /comments/ticket/{id}?requesterId=X` imzasında kalıyor; artık güvenlik kararı için kullanılmıyor ama interface/controller'dan kaldırılmadı. Ayrı refactoring fazına bırakıldı. |
 | `addComment.authorId` | Request body'den alınıyor; token'dan otomatik atanabilir. |
 | `saveAttachment.uploadedById` | Request body'den alınıyor; token'dan otomatik atanabilir. |
-| AGENT/MANAGER oluşturma | Şu an kimse AGENT veya MANAGER oluşturamuyor. MANAGER-only bir endpoint gerekli. |
+| İlk MANAGER hesabı | `POST /api/v1/users/admin` yalnızca MANAGER tokenıyla erişilebilir. İlk MANAGER hesabı bootstrap, seed data veya doğrudan veritabanı kaydıyla oluşturulmalıdır. Kod içine hardcoded admin bilgisi eklenmemelidir. |
 | `isActive` tutarlılığı | Pasif kullanıcının tüm işlemlerden engellenmesi için kontroller genişletilebilir. |
 | Rate limiting | Brute-force koruması production öncesi eklenebilir. |
 | Keycloak entegrasyonu | İleride planlanmaktadır; mevcut JWT altyapısı geçiş için hazır. |
