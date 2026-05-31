@@ -5,6 +5,7 @@ import com.ticketsystem.core.exception.ResourceNotFoundException;
 import com.ticketsystem.dto.request.AssignTicketRequest;
 import com.ticketsystem.dto.request.ChangeStatusRequest;
 import com.ticketsystem.dto.request.CreateTicketRequest;
+import com.ticketsystem.dto.request.PriorityReviewRequest;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
 import com.ticketsystem.entity.enums.Impact;
@@ -217,6 +218,18 @@ public class TicketServiceImpl implements TicketService {
     @Transactional(readOnly = true)
     public List<Ticket> getTicketsByStatusAndPriority(TicketStatus status, Priority priority) {
         return ticketRepository.findByStatusAndPriority(status, priority);
+    }
+
+    @Override
+    @Transactional
+    public Ticket reviewPriority(Long ticketId, PriorityReviewRequest request) {
+        Ticket ticket = getTicketById(ticketId);
+        ticket.setPriority(request.getPriority());
+        ticket.setDueDate(slaService.calculateDueDate(request.getPriority()));
+        ticket.setPriorityReviewNote(request.getReviewNote());
+        ticket.setPriorityReviewedAt(LocalDateTime.now());
+        ticket.setPriorityReviewedBy(getCurrentUser());
+        return ticketRepository.save(ticket);
     }
 
     private static Priority calculateSuggestedPriority(Impact impact, Urgency urgency) {

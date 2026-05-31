@@ -66,6 +66,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/deactivate").hasRole("MANAGER")
                 .requestMatchers(HttpMethod.GET,   "/api/v1/users/role/*").hasRole("MANAGER")
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/tickets/*/assign").hasRole("MANAGER")
+                .requestMatchers(HttpMethod.PATCH, "/api/v1/tickets/*/priority-review").hasAnyRole("AGENT", "MANAGER")
                 .requestMatchers(HttpMethod.GET,   "/api/v1/tickets/status/*").hasAnyRole("AGENT", "MANAGER")
                 .requestMatchers(HttpMethod.GET,   "/api/v1/tickets/priority/*").hasAnyRole("AGENT", "MANAGER")
                 .requestMatchers(HttpMethod.GET,   "/api/v1/tickets/unassigned").hasAnyRole("AGENT", "MANAGER")

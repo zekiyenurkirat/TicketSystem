@@ -4,6 +4,7 @@ import com.ticketsystem.core.response.ApiResponse;
 import com.ticketsystem.dto.request.AssignTicketRequest;
 import com.ticketsystem.dto.request.ChangeStatusRequest;
 import com.ticketsystem.dto.request.CreateTicketRequest;
+import com.ticketsystem.dto.request.PriorityReviewRequest;
 import com.ticketsystem.dto.response.TicketResponse;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.enums.Priority;
@@ -96,6 +97,26 @@ public class TicketController {
         Ticket ticket = ticketService.assignTicket(id, request);
         TicketResponse response = TicketResponse.from(ticket);
         return ResponseEntity.ok(ApiResponse.success(response, "Ticket atandı."));
+    }
+
+    /** Ticket önceliğini gözden geçirir ve günceller. */
+    @Operation(summary = "Ticket önceliğini gözden geçirir",
+               description = "AGENT veya MANAGER tarafından ticket'ın aktif önceliği güncellenir, dueDate yeniden hesaplanır ve review meta bilgileri kaydedilir.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Ticket önceliği başarıyla güncellendi."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validasyon hatası veya geçersiz istek."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Kimlik doğrulama gerekli."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Bu işlem için yetkiniz yok."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Belirtilen ID'ye sahip ticket bulunamadı."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Beklenmeyen bir hata oluştu.")
+    })
+    @PatchMapping("/{id}/priority-review")
+    public ResponseEntity<ApiResponse<TicketResponse>> reviewPriority(
+            @PathVariable Long id,
+            @RequestBody @Valid PriorityReviewRequest request) {
+        Ticket ticket = ticketService.reviewPriority(id, request);
+        TicketResponse response = TicketResponse.from(ticket);
+        return ResponseEntity.ok(ApiResponse.success(response, "Ticket önceliği değerlendirildi."));
     }
 
     /** Ticket statüsünü günceller. */

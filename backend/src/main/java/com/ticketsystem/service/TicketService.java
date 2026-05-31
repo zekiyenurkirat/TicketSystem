@@ -3,6 +3,7 @@ package com.ticketsystem.service;
 import com.ticketsystem.dto.request.AssignTicketRequest;
 import com.ticketsystem.dto.request.ChangeStatusRequest;
 import com.ticketsystem.dto.request.CreateTicketRequest;
+import com.ticketsystem.dto.request.PriorityReviewRequest;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.enums.Priority;
 import com.ticketsystem.entity.enums.TicketStatus;
@@ -45,4 +46,7 @@ public interface TicketService {
 
     /** Belirtilen statü ve öncelik kombinasyonundaki ticket'ları getirir. */
     List<Ticket> getTicketsByStatusAndPriority(TicketStatus status, Priority priority);
+
+    /** AGENT veya MANAGER tarafından ticket'ın aktif önceliğini gözden geçirir ve günceller. */
+    Ticket reviewPriority(Long ticketId, PriorityReviewRequest request);
 }
