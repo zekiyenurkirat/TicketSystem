@@ -5,10 +5,13 @@ import com.ticketsystem.dto.request.SaveAttachmentRequest;
 import com.ticketsystem.entity.Attachment;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
+import com.ticketsystem.entity.enums.Role;
 import com.ticketsystem.repository.AttachmentRepository;
 import com.ticketsystem.service.AttachmentService;
 import com.ticketsystem.service.TicketService;
 import com.ticketsystem.service.UserService;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,7 +84,17 @@ public class AttachmentServiceImpl implements AttachmentService {
     @Override
     @Transactional(readOnly = true)
     public List<Attachment> getAttachmentsByUploadedBy(Long userId) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER
+                && !currentUser.getId().equals(userId)) {
+            throw new AccessDeniedException("Yalnızca kendi yüklediğiniz dosyaları listeleyebilirsiniz.");
+        }
         User user = userService.getUserById(userId);
         return attachmentRepository.findByUploadedBy(user);
+    }
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userService.getUserByEmail(email);
     }
 }
