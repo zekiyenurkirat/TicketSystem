@@ -1,13 +1,17 @@
 package com.ticketsystem.controller;
 
 import com.ticketsystem.core.response.ApiResponse;
+import com.ticketsystem.dto.response.AttachmentDownloadResult;
 import com.ticketsystem.dto.response.AttachmentResponse;
 import com.ticketsystem.entity.Attachment;
 import com.ticketsystem.service.AttachmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -48,6 +52,30 @@ public class AttachmentController {
         Attachment attachment = attachmentService.uploadAttachment(ticketId, file);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(AttachmentResponse.from(attachment), "Dosya başarıyla yüklendi."));
+    }
+
+    /** Yüklenmiş dosyayı güvenli şekilde indirir. */
+    @Operation(summary = "Dosyayı indirir",
+               description = "Attachment ID ile yüklenmiş gerçek dosyayı indirir. "
+                           + "Geçerli JWT token gereklidir. "
+                           + "CUSTOMER yalnızca kendi ticket'ının dosyasını indirebilir. "
+                           + "AGENT ve MANAGER tüm dosyalara erişebilir.")
+    @ApiResponses({
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Dosya başarıyla indirildi."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Kimlik doğrulama gerekli."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Bu dosyaya erişim yetkiniz yok."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Attachment veya fiziksel dosya bulunamadı."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Beklenmeyen bir hata oluştu.")
+    })
+    @GetMapping("/{id}/download")
+    public ResponseEntity<Resource> downloadAttachment(@PathVariable Long id) {
+        AttachmentDownloadResult result = attachmentService.downloadAttachment(id);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + result.fileName() + "\"")
+                .contentType(MediaType.parseMediaType(result.fileType()))
+                .contentLength(result.fileSize())
+                .body(result.resource());
     }
 
     /** Ticket'a ait dosya kayıtlarını getirir. */

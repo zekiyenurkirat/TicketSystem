@@ -1,6 +1,8 @@
 package com.ticketsystem.service.impl;
 
 import com.ticketsystem.core.exception.BusinessRuleException;
+import com.ticketsystem.core.exception.ResourceNotFoundException;
+import com.ticketsystem.dto.response.AttachmentDownloadResult;
 import com.ticketsystem.entity.Attachment;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
@@ -10,6 +12,7 @@ import com.ticketsystem.service.AttachmentService;
 import com.ticketsystem.service.FileStorageService;
 import com.ticketsystem.service.TicketService;
 import com.ticketsystem.service.UserService;
+import org.springframework.core.io.Resource;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -97,6 +100,31 @@ public class AttachmentServiceImpl implements AttachmentService {
         attachment.setFilePath(storedFileName);            // uuid.ext — client'a dönmez
 
         return attachmentRepository.save(attachment);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public AttachmentDownloadResult downloadAttachment(Long attachmentId) {
+        // 1. Attachment bulunur; bulunamazsa 404.
+        Attachment attachment = attachmentRepository.findById(attachmentId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Attachment bulunamadı. id: " + attachmentId));
+
+        // 2. Ticket ownership zinciri tetiklenir.
+        //    CUSTOMER başkasının ticket dosyasını indirmeye çalışırsa → 403.
+        ticketService.getTicketById(attachment.getTicket().getId());
+
+        // 3. Ownership geçildikten sonra fiziksel dosya yüklenir.
+        //    Dosya disk'te yoksa → 404. Boundary ihlali → 400.
+        Resource resource = fileStorageService.loadFileAsResource(attachment.getFilePath());
+
+        // 4. Resource ve header metadata'sı birlikte döner.
+        return new AttachmentDownloadResult(
+                resource,
+                attachment.getFileName(),
+                attachment.getFileType(),
+                attachment.getFileSize()
+        );
     }
 
     @Override
