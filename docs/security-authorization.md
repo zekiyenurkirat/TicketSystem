@@ -56,6 +56,7 @@ HTTP İsteği → JwtAuthenticationFilter → SecurityFilterChain (URL kuralı) 
 | `GET /api/v1/tickets/priority/{priority}` | Önceliğe göre ticket listeleme |
 | `GET /api/v1/tickets/unassigned` | Atanmamış ticketları listeleme |
 | `GET /api/v1/tickets/filter` | Filtreli ticket listeleme |
+| `PATCH /api/v1/tickets/{id}/priority-review` | Ticket'ın aktif önceliğini gözden geçirme ve güncelleme |
 
 ### Herkese Açık (permitAll) Endpointler
 
@@ -113,6 +114,47 @@ URL kurallarından geçen istekler için servis katmanında `getCurrentUser()` h
 
 ---
 
+## Priority Triage System
+
+Ticket oluşturma ve öncelik yönetimi sürecinde beş ayrı öncelik kavramı birbirinden bağımsız olarak ele alınır.
+
+| Alan | Tip | Açıklama |
+|------|-----|---------|
+| `customerPriority` | `Priority` | Ticket oluştururken creator tarafından seçilen öncelik |
+| `impact` | `Impact` | Sorunun iş süreçlerine etkisi (LOW / MEDIUM / HIGH) |
+| `urgency` | `Urgency` | Sorunun ne kadar hızlı çözülmesi gerektiği (LOW / MEDIUM / HIGH) |
+| `suggestedPriority` | `Priority` | `impact` + `urgency` matrisinden sistem tarafından hesaplanan öneri |
+| `priority` | `Priority` | Aktif/final priority; SLA `dueDate` hesaplamasında kullanılan asıl değer |
+
+### Başlangıç Değerleri
+
+Ticket oluşturulduğunda `priority`, `customerPriority` değerinden başlar. `suggestedPriority` yalnızca AGENT ve MANAGER için bir bilgi kaynağıdır; aktif `priority`'yi otomatik olarak değiştirmez. AGENT veya MANAGER `priority-review` ile final priority kararını verir; bu işlemden sonra `dueDate` aktif `priority`'ye göre yeniden hesaplanır.
+
+### Impact + Urgency Matrisi
+
+| Impact \ Urgency | LOW | MEDIUM | HIGH |
+|------------------|-----|--------|------|
+| **LOW** | LOW | MEDIUM | HIGH |
+| **MEDIUM** | MEDIUM | HIGH | CRITICAL |
+| **HIGH** | HIGH | CRITICAL | BLOCKER |
+
+### CUSTOMER Priority Kuralları
+
+CUSTOMER ticket oluştururken `customerPriority` alanında yalnızca `LOW`, `MEDIUM` veya `HIGH` değerlerini seçebilir. `CRITICAL` veya `BLOCKER` seçilmesi durumunda servis katmanı `BusinessRuleException` fırlatır ve **400** döner. AGENT ve MANAGER bu kısıtlamaya tabi değildir; tüm `Priority` değerleriyle ticket oluşturabilir.
+
+### Priority Review
+
+`PATCH /api/v1/tickets/{id}/priority-review` endpointi AGENT ve MANAGER tarafından çağrılabilir. CUSTOMER bu endpoint'e erişemez (**403**). İstek `priority` (zorunlu) ve `reviewNote` (opsiyonel, max 1000 karakter) alanlarını alır.
+
+Review sonrasında:
+
+- `priority` → request'teki değere güncellenir
+- `dueDate` → yeni `priority`'ye göre `SlaService` tarafından yeniden hesaplanır
+- `priorityReviewNote`, `priorityReviewedAt`, `priorityReviewedBy` → set edilir
+- `customerPriority` ve `suggestedPriority` → değişmeden korunur
+
+---
+
 ## CUSTOMER Yetkileri
 
 | İşlem | Koşul |
@@ -154,6 +196,8 @@ URL kurallarından geçen istekler için servis katmanında `getCurrentUser()` h
 | Başkasının ticket attachment'larını görme | **403** | Ticket ownership zinciri |
 | Başka `uploaderId` ile attachment listesi çekme | **403** | Servis ownership kontrolü |
 | URL bazlı AGENT/MANAGER endpoint'leri | **403** | SecurityConfig URL kuralı |
+| `customerPriority=CRITICAL` veya `BLOCKER` ile ticket oluşturma | **400** | İş kuralı ihlali |
+| `PATCH /api/v1/tickets/{id}/priority-review` çağırma | **403** | SecurityConfig URL kuralı |
 
 ---
 
@@ -164,6 +208,7 @@ URL kurallarından geçen istekler için servis katmanında `getCurrentUser()` h
 - Tüm ticket ve kullanıcı attachment'larını listeleme
 - `GET /api/v1/users/role/{role}/active` — aktif kullanıcı listesi
 - Herhangi bir `createdById` veya `uploadedById` ile kayıt oluşturma
+- `PATCH /api/v1/tickets/{id}/priority-review` — ticket'ın aktif önceliğini review edebilir; `dueDate` yeniden hesaplanır
 
 AGENT kullanıcı oluşturma konusunda kısıtlıdır: `POST /api/v1/users/admin` çağrılamaz → **403**. AGENT, kendi başına veya başka bir AGENT ya da MANAGER hesabı oluşturamaz.
 
@@ -177,6 +222,7 @@ AGENT'ın tüm yetkileri artı:
 - `GET /api/v1/users/role/{role}` — role göre tüm kullanıcıları listeleme (aktif + pasif)
 - `PATCH /api/v1/users/{id}/deactivate` — kullanıcıyı pasife alma
 - `PATCH /api/v1/tickets/{id}/assign` — ticket'ı bir AGENT'a atama
+- `PATCH /api/v1/tickets/{id}/priority-review` — ticket'ın aktif önceliğini review edebilir; `dueDate` yeniden hesaplanır
 
 ---
 
@@ -187,7 +233,7 @@ AGENT'ın tüm yetkileri artı:
 | **401** | Token yok, geçersiz veya süresi dolmuş | `AuthenticationEntryPoint` |
 | **403** | Rol yetersiz (URL kuralı ihlali) | `AccessDeniedHandler` |
 | **403** | Başkasının verisine erişim (ownership ihlali) | `GlobalExceptionHandler` → `AccessDeniedException` |
-| **400** | İş kuralı ihlali (geçersiz statü geçişi, yanlış rol, INTERNAL yorum) | `GlobalExceptionHandler` → `BusinessRuleException` |
+| **400** | İş kuralı ihlali (geçersiz statü geçişi, yanlış rol, INTERNAL yorum, CUSTOMER tarafından CRITICAL/BLOCKER priority seçimi) | `GlobalExceptionHandler` → `BusinessRuleException` |
 | **404** | Kaynak bulunamadı | `GlobalExceptionHandler` → `ResourceNotFoundException` |
 | **409** | Email adresi zaten kayıtlı | `GlobalExceptionHandler` → `DuplicateResourceException` |
 
@@ -217,6 +263,16 @@ Doğrulanan önemli güvenlik senaryoları:
 | CUSTOMER | `POST /users/admin` | **403** | MANAGER-only URL kuralı |
 | Herhangi | Token olmadan `POST /users/admin` | **401** | Authentication katmanı |
 | Herhangi | `POST /users` `role=AGENT` | **400** | Public kayıt CUSTOMER-only kısıtı korunuyor |
+| CUSTOMER | `POST /tickets` `customerPriority=CRITICAL` | **400** | CUSTOMER CRITICAL priority seçemez |
+| CUSTOMER | `POST /tickets` `customerPriority=BLOCKER` | **400** | CUSTOMER BLOCKER priority seçemez |
+| CUSTOMER | `POST /tickets` `LOW + impact=HIGH + urgency=HIGH` | **201**, `suggestedPriority=BLOCKER`, `priority=LOW` | Matrix hesaplama; aktif `priority` değişmez |
+| CUSTOMER | `POST /tickets` `HIGH + impact=LOW + urgency=LOW` | **201**, `suggestedPriority=LOW`, `priority=HIGH` | Matrix hesaplama; aktif `priority` değişmez |
+| AGENT | `POST /tickets` `customerPriority=CRITICAL` | **201** | AGENT priority kısıtlamasına tabi değil |
+| AGENT | `PATCH /tickets/{id}/priority-review` `BLOCKER` | **200** | Review alanları set; `dueDate` güncellendi |
+| MANAGER | `PATCH /tickets/{id}/priority-review` `CRITICAL` | **200** | `priorityReviewedBy` manager; `dueDate` güncellendi |
+| CUSTOMER | `PATCH /tickets/{id}/priority-review` | **403** | SecurityConfig URL kuralı |
+| Herhangi | Token olmadan `PATCH /tickets/{id}/priority-review` | **401** | Authentication katmanı |
+| AGENT | `GET /tickets/priority/BLOCKER` | **200** | Aktif `priority`'ye göre filtre doğru çalışıyor |
 
 ---
 
@@ -274,4 +330,4 @@ Bu projenin geliştirme ortamında ilk MANAGER hesabı doğrudan veritabanına e
 
 ## Özet
 
-TicketSystem'de JWT authentication altyapısının üzerine iki katmanlı yetkilendirme eklendi. `SecurityFilterChain` ile URL bazlı rol kuralları ve servis katmanında `SecurityContextHolder` tabanlı ownership kontrolleri bir arada çalışarak CUSTOMER, AGENT ve MANAGER rollerinin güvenli veri erişim sınırları tanımlandı. Tüm kontroller runtime testlerle doğrulandı.
+TicketSystem'de JWT authentication altyapısının üzerine iki katmanlı yetkilendirme eklendi. `SecurityFilterChain` ile URL bazlı rol kuralları ve servis katmanında `SecurityContextHolder` tabanlı ownership kontrolleri bir arada çalışarak CUSTOMER, AGENT ve MANAGER rollerinin güvenli veri erişim sınırları tanımlandı. Priority Triage System ile CUSTOMER priority seçimi kısıtlanmış; AGENT ve MANAGER ise `priority-review` endpointi üzerinden ticket'ların aktif önceliğini güncelleyebilir ve `dueDate`'i yeniden hesaplayabilir hale gelmiştir. Tüm kontroller runtime testlerle doğrulandı.
