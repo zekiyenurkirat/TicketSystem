@@ -2,8 +2,10 @@ package com.ticketsystem.dto.response;
 
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
+import com.ticketsystem.entity.enums.Impact;
 import com.ticketsystem.entity.enums.Priority;
 import com.ticketsystem.entity.enums.TicketStatus;
+import com.ticketsystem.entity.enums.Urgency;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,6 +24,10 @@ public class TicketResponse {
     private String description;
     private TicketStatus status;
     private Priority priority;
+    private Priority customerPriority;
+    private Impact impact;
+    private Urgency urgency;
+    private Priority suggestedPriority;
     private Long createdById;
     private String createdByFullName;
     private Long assignedToId;
@@ -31,6 +37,10 @@ public class TicketResponse {
     private LocalDateTime closedAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String priorityReviewNote;
+    private LocalDateTime priorityReviewedAt;
+    private Long priorityReviewedById;
+    private String priorityReviewedByFullName;
 
     /** {@link Ticket} entity'sinden {@link TicketResponse} üretir. */
     public static TicketResponse from(Ticket ticket) {
@@ -46,6 +56,12 @@ public class TicketResponse {
                 ? assignedTo.getFirstName() + " " + assignedTo.getLastName()
                 : null;
 
+        User reviewer = ticket.getPriorityReviewedBy();
+        Long priorityReviewedById = reviewer != null ? reviewer.getId() : null;
+        String priorityReviewedByFullName = reviewer != null
+                ? reviewer.getFirstName() + " " + reviewer.getLastName()
+                : null;
+
         return new TicketResponse(
                 ticket.getId(),
                 ticket.getTicketNumber(),
@@ -53,6 +69,10 @@ public class TicketResponse {
                 ticket.getDescription(),
                 ticket.getStatus(),
                 ticket.getPriority(),
+                ticket.getCustomerPriority(),
+                ticket.getImpact(),
+                ticket.getUrgency(),
+                ticket.getSuggestedPriority(),
                 createdById,
                 createdByFullName,
                 assignedToId,
@@ -61,7 +81,11 @@ public class TicketResponse {
                 ticket.getResolvedAt(),
                 ticket.getClosedAt(),
                 ticket.getCreatedAt(),
-                ticket.getUpdatedAt()
+                ticket.getUpdatedAt(),
+                ticket.getPriorityReviewNote(),
+                ticket.getPriorityReviewedAt(),
+                priorityReviewedById,
+                priorityReviewedByFullName
         );
     }
 }

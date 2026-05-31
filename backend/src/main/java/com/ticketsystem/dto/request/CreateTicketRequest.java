@@ -1,6 +1,8 @@
 package com.ticketsystem.dto.request;
 
+import com.ticketsystem.entity.enums.Impact;
 import com.ticketsystem.entity.enums.Priority;
+import com.ticketsystem.entity.enums.Urgency;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -27,5 +29,11 @@ public class CreateTicketRequest {
     private String description;
 
     @NotNull
-    private Priority priority;
+    private Priority customerPriority;
+
+    @NotNull
+    private Impact impact;
+
+    @NotNull
+    private Urgency urgency;
 }

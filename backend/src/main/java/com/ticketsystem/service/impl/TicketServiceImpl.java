@@ -7,8 +7,10 @@ import com.ticketsystem.dto.request.ChangeStatusRequest;
 import com.ticketsystem.dto.request.CreateTicketRequest;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
+import com.ticketsystem.entity.enums.Impact;
 import com.ticketsystem.entity.enums.Priority;
 import com.ticketsystem.entity.enums.Role;
+import com.ticketsystem.entity.enums.Urgency;
 import com.ticketsystem.entity.enums.TicketStatus;
 import com.ticketsystem.repository.TicketRepository;
 import com.ticketsystem.service.SlaService;
@@ -71,17 +73,27 @@ public class TicketServiceImpl implements TicketService {
                 && !currentUser.getId().equals(request.getCreatedById())) {
             throw new AccessDeniedException("Yalnızca kendi adınıza ticket oluşturabilirsiniz.");
         }
+        if (currentUser.getRole() == Role.CUSTOMER
+                && (request.getCustomerPriority() == Priority.CRITICAL
+                        || request.getCustomerPriority() == Priority.BLOCKER)) {
+            throw new BusinessRuleException("Müşteri yalnızca LOW, MEDIUM veya HIGH öncelik seçebilir.");
+        }
         User createdBy = userService.getUserById(request.getCreatedById());
+        Priority suggested = calculateSuggestedPriority(request.getImpact(), request.getUrgency());
 
         Ticket ticket = new Ticket();
         ticket.setTicketNumber(generateTicketNumber());
         ticket.setTitle(request.getTitle());
         ticket.setDescription(request.getDescription());
-        ticket.setPriority(request.getPriority());
+        ticket.setCustomerPriority(request.getCustomerPriority());
+        ticket.setImpact(request.getImpact());
+        ticket.setUrgency(request.getUrgency());
+        ticket.setSuggestedPriority(suggested);
+        ticket.setPriority(request.getCustomerPriority());
         ticket.setCreatedBy(createdBy);
         ticket.setStatus(TicketStatus.NEW);
         ticket.setAssignedTo(null);
-        ticket.setDueDate(slaService.calculateDueDate(request.getPriority()));
+        ticket.setDueDate(slaService.calculateDueDate(ticket.getPriority()));
 
         return ticketRepository.save(ticket);
     }
@@ -205,6 +217,26 @@ public class TicketServiceImpl implements TicketService {
     @Transactional(readOnly = true)
     public List<Ticket> getTicketsByStatusAndPriority(TicketStatus status, Priority priority) {
         return ticketRepository.findByStatusAndPriority(status, priority);
+    }
+
+    private static Priority calculateSuggestedPriority(Impact impact, Urgency urgency) {
+        return switch (impact) {
+            case LOW    -> switch (urgency) {
+                case LOW    -> Priority.LOW;
+                case MEDIUM -> Priority.MEDIUM;
+                case HIGH   -> Priority.HIGH;
+            };
+            case MEDIUM -> switch (urgency) {
+                case LOW    -> Priority.MEDIUM;
+                case MEDIUM -> Priority.HIGH;
+                case HIGH   -> Priority.CRITICAL;
+            };
+            case HIGH   -> switch (urgency) {
+                case LOW    -> Priority.HIGH;
+                case MEDIUM -> Priority.CRITICAL;
+                case HIGH   -> Priority.BLOCKER;
+            };
+        };
     }
 
     private User getCurrentUser() {
