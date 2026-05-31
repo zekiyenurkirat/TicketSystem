@@ -11,6 +11,8 @@ import com.ticketsystem.repository.CommentRepository;
 import com.ticketsystem.service.CommentService;
 import com.ticketsystem.service.TicketService;
 import com.ticketsystem.service.UserService;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -72,27 +74,35 @@ public class CommentServiceImpl implements CommentService {
     @Override
     @Transactional(readOnly = true)
     public List<Comment> getCommentsForTicket(Long ticketId, Long requesterId) {
+        User currentUser = getCurrentUser();
         Ticket ticket = ticketService.getTicketById(ticketId);
-        User requester = userService.getUserById(requesterId);
 
-        Role requesterRole = requester.getRole();
-
-        if (requesterRole == Role.CUSTOMER) {
+        if (currentUser.getRole() == Role.CUSTOMER) {
             return commentRepository.findByTicketAndType(ticket, CommentType.EXTERNAL)
                     .stream()
                     .sorted(Comparator.comparing(Comment::getCreatedAt))
                     .collect(Collectors.toList());
-        } else if (requesterRole == Role.AGENT || requesterRole == Role.MANAGER) {
+        } else if (currentUser.getRole() == Role.AGENT || currentUser.getRole() == Role.MANAGER) {
             return commentRepository.findByTicketOrderByCreatedAtAsc(ticket);
         } else {
-            throw new BusinessRuleException("Tanımlanamayan rol: " + requesterRole);
+            throw new BusinessRuleException("Tanımlanamayan rol: " + currentUser.getRole());
         }
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<Comment> getCommentsByAuthor(Long authorId) {
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() == Role.CUSTOMER
+                && !currentUser.getId().equals(authorId)) {
+            throw new AccessDeniedException("Yalnızca kendi yorumlarınızı listeleyebilirsiniz.");
+        }
         User author = userService.getUserById(authorId);
         return commentRepository.findByAuthor(author);
+    }
+
+    private User getCurrentUser() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        return userService.getUserByEmail(email);
     }
 }
