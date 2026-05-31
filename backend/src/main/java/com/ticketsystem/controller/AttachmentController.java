@@ -1,22 +1,21 @@
 package com.ticketsystem.controller;
 
 import com.ticketsystem.core.response.ApiResponse;
-import com.ticketsystem.dto.request.SaveAttachmentRequest;
 import com.ticketsystem.dto.response.AttachmentResponse;
 import com.ticketsystem.entity.Attachment;
 import com.ticketsystem.service.AttachmentService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
 /** Dosya eki yönetimi HTTP isteklerini karşılar. */
-@Tag(name = "Dosya Eki Yönetimi", description = "Ticket dosya eki meta bilgilerini kaydetme ve sorgulama işlemleri")
+@Tag(name = "Dosya Eki Yönetimi", description = "Ticket dosya eki yükleme, indirme ve sorgulama işlemleri")
 @RestController
 @RequestMapping("/api/v1/attachments")
 public class AttachmentController {
@@ -27,22 +26,28 @@ public class AttachmentController {
         this.attachmentService = attachmentService;
     }
 
-    /** Dosya eki meta bilgilerini kaydeder. */
-    @Operation(summary = "Dosya eki meta bilgilerini kaydeder",
-               description = "Bir ticket'a ait dosya meta bilgilerini kaydeder. Gerçek dosya içeriği kaydedilmez; yalnızca meta bilgi kaydı oluşturulur.")
+    /** Gerçek dosyayı ticket'a yükler. */
+    @Operation(summary = "Dosyayı ticket'a yükler",
+               description = "multipart/form-data formatında gerçek dosya yükler. "
+                           + "Geçerli JWT token gereklidir. "
+                           + "İzin verilen formatlar: pdf, doc, docx, png, jpg, jpeg, txt. "
+                           + "Maksimum dosya boyutu: 10 MB. "
+                           + "uploadedBy token'dan belirlenir; client'tan alınmaz.")
     @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Dosya kaydı başarıyla oluşturuldu."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validasyon hatası veya geçersiz istek."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Belirtilen ticket veya kullanıcı bulunamadı."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Dosya başarıyla yüklendi."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Geçersiz dosya: boş, izin verilmeyen uzantı, MIME uyumsuzluğu veya boyut aşımı."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Kimlik doğrulama gerekli."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "403", description = "Başkasının ticket'ına erişim yetkisi yok."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Belirtilen ticket bulunamadı."),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Beklenmeyen bir hata oluştu.")
     })
-    @PostMapping
-    public ResponseEntity<ApiResponse<AttachmentResponse>> saveAttachmentRecord(
-            @RequestBody @Valid SaveAttachmentRequest request) {
-        Attachment attachment = attachmentService.saveAttachmentRecord(request);
-        AttachmentResponse response = AttachmentResponse.from(attachment);
+    @PostMapping("/upload")
+    public ResponseEntity<ApiResponse<AttachmentResponse>> uploadAttachment(
+            @RequestParam("ticketId") Long ticketId,
+            @RequestParam("file") MultipartFile file) {
+        Attachment attachment = attachmentService.uploadAttachment(ticketId, file);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Dosya kaydı başarıyla oluşturuldu."));
+                .body(ApiResponse.success(AttachmentResponse.from(attachment), "Dosya başarıyla yüklendi."));
     }
 
     /** Ticket'a ait dosya kayıtlarını getirir. */

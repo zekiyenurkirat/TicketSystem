@@ -1,7 +1,6 @@
 package com.ticketsystem.service.impl;
 
 import com.ticketsystem.core.exception.BusinessRuleException;
-import com.ticketsystem.dto.request.SaveAttachmentRequest;
 import com.ticketsystem.entity.Attachment;
 import com.ticketsystem.entity.Ticket;
 import com.ticketsystem.entity.User;
@@ -54,47 +53,6 @@ public class AttachmentServiceImpl implements AttachmentService {
         this.ticketService = ticketService;
         this.userService = userService;
         this.fileStorageService = fileStorageService;
-    }
-
-    @Override
-    @Transactional
-    public Attachment saveAttachmentRecord(SaveAttachmentRequest request) {
-        Ticket ticket = ticketService.getTicketById(request.getTicketId());
-        User uploadedBy = userService.getUserById(request.getUploadedById());
-
-        if (!uploadedBy.isActive()) {
-            throw new BusinessRuleException("Pasif kullanıcı dosya ekleyemez. id: " + request.getUploadedById());
-        }
-
-        if (request.getFileName() == null || request.getFileName().isBlank()) {
-            throw new BusinessRuleException("Dosya adı boş olamaz.");
-        }
-
-        if (request.getFileType() == null || request.getFileType().isBlank()) {
-            throw new BusinessRuleException("Dosya tipi boş olamaz.");
-        }
-
-        if (request.getFilePath() == null || request.getFilePath().isBlank()) {
-            throw new BusinessRuleException("Dosya yolu boş olamaz.");
-        }
-
-        if (request.getFileSize() == null) {
-            throw new BusinessRuleException("Dosya boyutu boş olamaz.");
-        }
-
-        if (request.getFileSize() <= 0) {
-            throw new BusinessRuleException("Dosya boyutu sıfırdan büyük olmalıdır.");
-        }
-
-        Attachment attachment = new Attachment();
-        attachment.setTicket(ticket);
-        attachment.setUploadedBy(uploadedBy);
-        attachment.setFileName(request.getFileName());
-        attachment.setFileType(request.getFileType());
-        attachment.setFilePath(request.getFilePath());
-        attachment.setFileSize(request.getFileSize());
-
-        return attachmentRepository.save(attachment);
     }
 
     @Override
