@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { UserRole } from '../../types/auth.types'
 import type { TicketResponse, TicketStatus, Priority, Impact, Urgency } from '../../types/ticket.types'
 import TicketActions from './TicketActions'
+import TicketComments from './TicketComments'
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   NEW: 'Yeni',
@@ -188,6 +189,8 @@ function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelP
             </dl>
           </Section>
         )}
+
+        <TicketComments key={ticket.id} ticketId={ticket.id} />
       </div>
 
       {role && (
