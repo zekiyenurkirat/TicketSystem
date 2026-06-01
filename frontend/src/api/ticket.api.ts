@@ -1,6 +1,6 @@
 import client from './client'
 import type { ApiResponse } from '../types/api.types'
-import type { TicketResponse, TicketStatus } from '../types/ticket.types'
+import type { TicketResponse, TicketStatus, CreateTicketRequest } from '../types/ticket.types'
 
 const ALL_STATUSES: TicketStatus[] = [
   'NEW',
@@ -11,6 +11,11 @@ const ALL_STATUSES: TicketStatus[] = [
   'CLOSED',
   'CANCELLED',
 ]
+
+export async function createTicket(request: CreateTicketRequest): Promise<TicketResponse> {
+  const response = await client.post<ApiResponse<TicketResponse>>('/tickets', request)
+  return response.data.data
+}
 
 export async function fetchTicketsByUser(userId: number): Promise<TicketResponse[]> {
   const response = await client.get<ApiResponse<TicketResponse[]>>(

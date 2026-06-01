@@ -11,6 +11,7 @@ const roleBadgeClass: Record<UserRole, string> = {
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Dashboard',
   '/tickets': 'Talepler',
+  '/tickets/create': 'Yeni Talep Oluştur',
   '/users': 'Kullanıcı Yönetimi',
 }
 

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { fetchTicketsByUser, fetchAllTicketsByStatuses } from '../api/ticket.api'
 import type { TicketResponse } from '../types/ticket.types'
@@ -6,6 +7,7 @@ import TicketTable from '../components/ticket/TicketTable'
 import TicketDetailPanel from '../components/ticket/TicketDetailPanel'
 
 function TicketListPage() {
+  const navigate = useNavigate()
   const { role, userId } = useAuth()
   const [tickets, setTickets] = useState<TicketResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -43,9 +45,17 @@ function TicketListPage() {
       <div className="flex-1 min-w-0 bg-white rounded-xl border border-slate-200 shadow-sm">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-700">Talepler</h2>
-          {!isLoading && !error && (
-            <span className="text-xs text-slate-400">{tickets.length} kayıt</span>
-          )}
+          <div className="flex items-center gap-3">
+            {!isLoading && !error && (
+              <span className="text-xs text-slate-400">{tickets.length} kayıt</span>
+            )}
+            <button
+              onClick={() => navigate('/tickets/create')}
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors"
+            >
+              + Yeni Talep
+            </button>
+          </div>
         </div>
 
         {error && (

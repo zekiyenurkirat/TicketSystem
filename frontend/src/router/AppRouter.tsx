@@ -3,6 +3,7 @@ import AppLayout from '../components/layout/AppLayout'
 import LoginPage from '../pages/LoginPage'
 import DashboardPage from '../pages/DashboardPage'
 import TicketListPage from '../pages/TicketListPage'
+import TicketCreatePage from '../pages/TicketCreatePage'
 import UserManagementPage from '../pages/UserManagementPage'
 import ProtectedRoute from './ProtectedRoute'
 
@@ -17,6 +18,7 @@ function AppRouter() {
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/tickets" element={<TicketListPage />} />
+            <Route path="/tickets/create" element={<TicketCreatePage />} />
             <Route element={<ProtectedRoute requiredRole="MANAGER" />}>
               <Route path="/users" element={<UserManagementPage />} />
             </Route>
