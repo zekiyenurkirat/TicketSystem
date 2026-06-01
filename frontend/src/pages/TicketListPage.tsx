@@ -14,6 +14,11 @@ function TicketListPage() {
   const [error, setError] = useState<string | null>(null)
   const [selectedTicket, setSelectedTicket] = useState<TicketResponse | null>(null)
 
+  function handleTicketUpdated(updated: TicketResponse) {
+    setSelectedTicket(updated)
+    setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+  }
+
   useEffect(() => {
     async function load() {
       setIsLoading(true)
@@ -73,7 +78,11 @@ function TicketListPage() {
       </div>
 
       <div className="w-[380px] flex-shrink-0 sticky top-6">
-        <TicketDetailPanel ticket={selectedTicket} />
+        <TicketDetailPanel
+          ticket={selectedTicket}
+          role={role}
+          onTicketUpdated={handleTicketUpdated}
+        />
       </div>
     </div>
   )

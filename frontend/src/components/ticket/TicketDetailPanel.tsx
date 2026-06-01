@@ -1,5 +1,7 @@
 import type { ReactNode } from 'react'
+import type { UserRole } from '../../types/auth.types'
 import type { TicketResponse, TicketStatus, Priority, Impact, Urgency } from '../../types/ticket.types'
+import TicketActions from './TicketActions'
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   NEW: 'Yeni',
@@ -93,9 +95,11 @@ function Section({ title, children }: SectionProps) {
 
 type TicketDetailPanelProps = {
   ticket: TicketResponse | null
+  role: UserRole | null
+  onTicketUpdated: (updated: TicketResponse) => void
 }
 
-function TicketDetailPanel({ ticket }: TicketDetailPanelProps) {
+function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelProps) {
   if (!ticket) {
     return (
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center py-20">
@@ -105,8 +109,8 @@ function TicketDetailPanel({ ticket }: TicketDetailPanelProps) {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-slate-100">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-5.5rem)]">
+      <div className="px-5 py-4 border-b border-slate-100 flex-shrink-0">
         <p className="font-mono text-xs text-slate-400 mb-1">{ticket.ticketNumber}</p>
         <h3 className="text-sm font-semibold text-slate-800 leading-snug mb-3">
           {ticket.title}
@@ -125,7 +129,7 @@ function TicketDetailPanel({ ticket }: TicketDetailPanelProps) {
         </div>
       </div>
 
-      <div className="px-5 py-4 space-y-5 overflow-y-auto max-h-[calc(100vh-16rem)]">
+      <div className="px-5 py-4 space-y-5 overflow-y-auto flex-1">
         <Section title="Açıklama">
           <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
             {ticket.description}
@@ -185,6 +189,15 @@ function TicketDetailPanel({ ticket }: TicketDetailPanelProps) {
           </Section>
         )}
       </div>
+
+      {role && (
+        <TicketActions
+          key={ticket.id}
+          ticket={ticket}
+          role={role}
+          onUpdated={onTicketUpdated}
+        />
+      )}
     </div>
   )
 }

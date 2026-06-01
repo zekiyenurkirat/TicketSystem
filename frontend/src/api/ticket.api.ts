@@ -1,6 +1,13 @@
 import client from './client'
 import type { ApiResponse } from '../types/api.types'
-import type { TicketResponse, TicketStatus, CreateTicketRequest } from '../types/ticket.types'
+import type {
+  TicketResponse,
+  TicketStatus,
+  CreateTicketRequest,
+  AssignTicketRequest,
+  ChangeStatusRequest,
+  PriorityReviewRequest,
+} from '../types/ticket.types'
 
 const ALL_STATUSES: TicketStatus[] = [
   'NEW',
@@ -11,6 +18,39 @@ const ALL_STATUSES: TicketStatus[] = [
   'CLOSED',
   'CANCELLED',
 ]
+
+export async function assignTicket(
+  ticketId: number,
+  request: AssignTicketRequest
+): Promise<TicketResponse> {
+  const response = await client.patch<ApiResponse<TicketResponse>>(
+    `/tickets/${ticketId}/assign`,
+    request
+  )
+  return response.data.data
+}
+
+export async function changeTicketStatus(
+  ticketId: number,
+  request: ChangeStatusRequest
+): Promise<TicketResponse> {
+  const response = await client.patch<ApiResponse<TicketResponse>>(
+    `/tickets/${ticketId}/status`,
+    request
+  )
+  return response.data.data
+}
+
+export async function reviewTicketPriority(
+  ticketId: number,
+  request: PriorityReviewRequest
+): Promise<TicketResponse> {
+  const response = await client.patch<ApiResponse<TicketResponse>>(
+    `/tickets/${ticketId}/priority-review`,
+    request
+  )
+  return response.data.data
+}
 
 export async function createTicket(request: CreateTicketRequest): Promise<TicketResponse> {
   const response = await client.post<ApiResponse<TicketResponse>>('/tickets', request)

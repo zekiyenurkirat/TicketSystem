@@ -13,6 +13,19 @@ export type Impact = 'LOW' | 'MEDIUM' | 'HIGH'
 
 export type Urgency = 'LOW' | 'MEDIUM' | 'HIGH'
 
+export interface AssignTicketRequest {
+  agentId: number
+}
+
+export interface ChangeStatusRequest {
+  newStatus: TicketStatus
+}
+
+export interface PriorityReviewRequest {
+  priority: Priority
+  reviewNote?: string
+}
+
 export interface CreateTicketRequest {
   createdById: number
   title: string

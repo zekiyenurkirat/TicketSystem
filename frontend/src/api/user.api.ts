@@ -8,3 +8,8 @@ export async function getUserByEmail(email: string): Promise<UserResponse> {
   )
   return response.data.data
 }
+
+export async function getActiveAgents(): Promise<UserResponse[]> {
+  const response = await client.get<ApiResponse<UserResponse[]>>('/users/role/AGENT/active')
+  return response.data.data
+}
