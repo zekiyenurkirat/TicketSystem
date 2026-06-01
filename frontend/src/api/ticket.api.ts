@@ -57,6 +57,13 @@ export async function createTicket(request: CreateTicketRequest): Promise<Ticket
   return response.data.data
 }
 
+export async function fetchTicketsByAgent(agentId: number): Promise<TicketResponse[]> {
+  const response = await client.get<ApiResponse<TicketResponse[]>>(
+    `/tickets/assigned-to/${agentId}`
+  )
+  return response.data.data
+}
+
 export async function fetchTicketsByUser(userId: number): Promise<TicketResponse[]> {
   const response = await client.get<ApiResponse<TicketResponse[]>>(
     `/tickets/created-by/${userId}`

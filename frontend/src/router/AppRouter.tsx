@@ -5,6 +5,7 @@ import DashboardPage from '../pages/DashboardPage'
 import TicketListPage from '../pages/TicketListPage'
 import TicketCreatePage from '../pages/TicketCreatePage'
 import UserManagementPage from '../pages/UserManagementPage'
+import WorkloadPage from '../pages/WorkloadPage'
 import ProtectedRoute from './ProtectedRoute'
 
 function AppRouter() {
@@ -21,6 +22,7 @@ function AppRouter() {
             <Route path="/tickets/create" element={<TicketCreatePage />} />
             <Route element={<ProtectedRoute requiredRole="MANAGER" />}>
               <Route path="/users" element={<UserManagementPage />} />
+              <Route path="/workload" element={<WorkloadPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>
