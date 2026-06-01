@@ -1,5 +1,6 @@
 import type { UserRole } from '../../types/auth.types'
-import type { TicketResponse, TicketStatus } from '../../types/ticket.types'
+import type { TicketResponse } from '../../types/ticket.types'
+import { CLOSED_TERMINAL, isOverdue, isSlaApproaching } from '../../utils/ticketUtils'
 
 export type QueueId =
   | 'all'
@@ -11,6 +12,11 @@ export type QueueId =
   | 'resolved'
   | 'overdue'
   | 'sla_approaching'
+  | 'unassigned_critical'
+  | 'active'
+  | 'mine_in_progress'
+  | 'mine_sla_approaching'
+  | 'mine_waiting'
 
 type QueueDefinition = {
   id: QueueId
@@ -18,26 +24,15 @@ type QueueDefinition = {
   predicate: ((ticket: TicketResponse, userId: number | null) => boolean) | null
 }
 
-const CLOSED_TERMINAL = new Set<TicketStatus>(['CLOSED', 'CANCELLED'])
-const ALL_TERMINAL = new Set<TicketStatus>(['CLOSED', 'CANCELLED', 'RESOLVED'])
-const SLA_APPROACHING_MS = 24 * 60 * 60 * 1000
-
-function isOverdue(ticket: TicketResponse): boolean {
-  if (!ticket.dueDate) return false
-  if (CLOSED_TERMINAL.has(ticket.status)) return false
-  return new Date(ticket.dueDate) < new Date()
-}
-
-function isSlaApproaching(ticket: TicketResponse): boolean {
-  if (!ticket.dueDate) return false
-  if (ALL_TERMINAL.has(ticket.status)) return false
-  const remaining = new Date(ticket.dueDate).getTime() - Date.now()
-  return remaining > 0 && remaining <= SLA_APPROACHING_MS
-}
-
 const CUSTOMER_QUEUES: QueueDefinition[] = [
   { id: 'all', label: 'Tüm Taleplerim', predicate: null },
   { id: 'new', label: 'Yeni', predicate: (t) => t.status === 'NEW' },
+  {
+    id: 'active',
+    label: 'Çözüm Bekleyenler',
+    predicate: (t) =>
+      t.status !== 'RESOLVED' && t.status !== 'CLOSED' && t.status !== 'CANCELLED',
+  },
   {
     id: 'in_progress',
     label: 'İşlemdeki',
@@ -72,6 +67,24 @@ const AGENT_QUEUES: QueueDefinition[] = [
   { id: 'resolved', label: 'Çözülenler', predicate: (t) => t.status === 'RESOLVED' },
   { id: 'overdue', label: 'Gecikenler', predicate: (t) => isOverdue(t) },
   { id: 'sla_approaching', label: 'SLA Yaklaşanlar', predicate: (t) => isSlaApproaching(t) },
+  {
+    id: 'mine_in_progress',
+    label: 'İşlemdeki',
+    predicate: (t, userId) =>
+      userId !== null && t.assignedToId === userId && t.status === 'IN_PROGRESS',
+  },
+  {
+    id: 'mine_sla_approaching',
+    label: 'SLA Yaklaşanlar',
+    predicate: (t, userId) =>
+      userId !== null && t.assignedToId === userId && isSlaApproaching(t),
+  },
+  {
+    id: 'mine_waiting',
+    label: 'Müşteri Yanıtı Bekleyen',
+    predicate: (t, userId) =>
+      userId !== null && t.assignedToId === userId && t.status === 'WAITING_FOR_CUSTOMER',
+  },
 ]
 
 const MANAGER_QUEUES: QueueDefinition[] = [
@@ -87,6 +100,14 @@ const MANAGER_QUEUES: QueueDefinition[] = [
   { id: 'resolved', label: 'Çözülenler', predicate: (t) => t.status === 'RESOLVED' },
   { id: 'overdue', label: 'Gecikenler', predicate: (t) => isOverdue(t) },
   { id: 'sla_approaching', label: 'SLA Yaklaşanlar', predicate: (t) => isSlaApproaching(t) },
+  {
+    id: 'unassigned_critical',
+    label: 'Kritik Atanmamış',
+    predicate: (t) =>
+      t.assignedToId === null &&
+      (t.priority === 'BLOCKER' || t.priority === 'CRITICAL') &&
+      !CLOSED_TERMINAL.has(t.status),
+  },
 ]
 
 function getQueues(role: UserRole | null): QueueDefinition[] {

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { fetchTicketsByUser, fetchAllTicketsByStatuses } from '../api/ticket.api'
 import type { TicketResponse } from '../types/ticket.types'
@@ -9,12 +9,23 @@ import TicketQueueFilter, { filterTickets } from '../components/ticket/TicketQue
 
 function TicketListPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const { role, userId } = useAuth()
   const [tickets, setTickets] = useState<TicketResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedTicket, setSelectedTicket] = useState<TicketResponse | null>(null)
-  const [selectedQueueId, setSelectedQueueId] = useState('all')
+  const [selectedQueueId, setSelectedQueueId] = useState(() => {
+    const params = new URLSearchParams(location.search)
+    const q = params.get('queue')
+    if (!q) return 'all'
+    const valid = new Set<string>([
+      'all', 'unassigned', 'mine', 'new', 'in_progress',
+      'waiting', 'resolved', 'overdue', 'sla_approaching', 'unassigned_critical',
+      'active', 'mine_in_progress', 'mine_sla_approaching', 'mine_waiting',
+    ])
+    return valid.has(q) ? q : 'all'
+  })
 
   const filteredTickets = useMemo(
     () => filterTickets(tickets, selectedQueueId, role, userId),
