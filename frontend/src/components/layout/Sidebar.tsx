@@ -1,4 +1,7 @@
+import { Link, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
+import { useAuth } from '../../context/AuthContext'
+import type { UserRole } from '../../types/auth.types'
 
 function HomeIcon() {
   return (
@@ -63,17 +66,25 @@ function UsersIcon() {
 
 type NavItem = {
   label: string
+  path: string
   icon: ReactNode
-  active: boolean
+  onlyRole?: UserRole
 }
 
 const navItems: NavItem[] = [
-  { label: 'Anasayfa', icon: <HomeIcon />, active: true },
-  { label: 'Talepler', icon: <TicketIcon />, active: false },
-  { label: 'Kullanıcılar', icon: <UsersIcon />, active: false },
+  { label: 'Anasayfa', path: '/dashboard', icon: <HomeIcon /> },
+  { label: 'Talepler', path: '/tickets', icon: <TicketIcon /> },
+  { label: 'Kullanıcılar', path: '/users', icon: <UsersIcon />, onlyRole: 'MANAGER' },
 ]
 
 function Sidebar() {
+  const { role } = useAuth()
+  const { pathname } = useLocation()
+
+  const visibleItems = navItems.filter(
+    (item) => !item.onlyRole || item.onlyRole === role
+  )
+
   return (
     <aside className="w-64 bg-violet-50 flex flex-col flex-shrink-0">
       <div className="px-6 py-5 border-b border-violet-100">
@@ -101,19 +112,23 @@ function Sidebar() {
       </div>
 
       <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {navItems.map((item) => (
-          <div
-            key={item.label}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium cursor-pointer transition-colors ${
-              item.active
-                ? 'bg-violet-200 text-violet-950'
-                : 'text-violet-700 hover:bg-violet-100 hover:text-violet-900'
-            }`}
-          >
-            {item.icon}
-            {item.label}
-          </div>
-        ))}
+        {visibleItems.map((item) => {
+          const isActive = pathname === item.path
+          return (
+            <Link
+              key={item.label}
+              to={item.path}
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                isActive
+                  ? 'bg-violet-200 text-violet-950'
+                  : 'text-violet-700 hover:bg-violet-100 hover:text-violet-900'
+              }`}
+            >
+              {item.icon}
+              {item.label}
+            </Link>
+          )
+        })}
       </nav>
     </aside>
   )

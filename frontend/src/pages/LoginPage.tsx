@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { Navigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import type { LoginRequest } from '../types/auth.types'
 
 function LoginPage() {
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -12,6 +13,8 @@ function LoginPage() {
   const [passwordError, setPasswordError] = useState('')
   const [serverError, setServerError] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />
 
   function validate(): boolean {
     let valid = true
