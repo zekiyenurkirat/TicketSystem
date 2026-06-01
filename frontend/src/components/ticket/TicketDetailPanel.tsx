@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { UserRole } from '../../types/auth.types'
 import type { TicketResponse, TicketStatus, Priority, Impact, Urgency } from '../../types/ticket.types'
 import TicketActions from './TicketActions'
+import TicketAttachments from './TicketAttachments'
 import TicketComments from './TicketComments'
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
@@ -190,7 +191,9 @@ function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelP
           </Section>
         )}
 
-        <TicketComments key={ticket.id} ticketId={ticket.id} />
+        <TicketAttachments key={`att-${ticket.id}`} ticketId={ticket.id} />
+
+        <TicketComments key={`cmt-${ticket.id}`} ticketId={ticket.id} />
       </div>
 
       {role && (
