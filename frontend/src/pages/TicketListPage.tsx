@@ -7,6 +7,13 @@ import TicketTable from '../components/ticket/TicketTable'
 import TicketDetailPanel from '../components/ticket/TicketDetailPanel'
 import TicketQueueFilter, { filterTickets } from '../components/ticket/TicketQueueFilter'
 
+const VALID_QUEUES = new Set<string>([
+  'all', 'unassigned', 'mine', 'new', 'in_progress',
+  'waiting', 'resolved', 'overdue', 'sla_approaching', 'unassigned_critical',
+  'active', 'mine_in_progress', 'mine_sla_approaching', 'mine_waiting',
+  'mine_overdue', 'my_waiting',
+])
+
 function TicketListPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -18,13 +25,7 @@ function TicketListPage() {
   const [selectedQueueId, setSelectedQueueId] = useState(() => {
     const params = new URLSearchParams(location.search)
     const q = params.get('queue')
-    if (!q) return 'all'
-    const valid = new Set<string>([
-      'all', 'unassigned', 'mine', 'new', 'in_progress',
-      'waiting', 'resolved', 'overdue', 'sla_approaching', 'unassigned_critical',
-      'active', 'mine_in_progress', 'mine_sla_approaching', 'mine_waiting',
-    ])
-    return valid.has(q) ? q : 'all'
+    return q && VALID_QUEUES.has(q) ? q : 'all'
   })
 
   const filteredTickets = useMemo(
@@ -41,6 +42,14 @@ function TicketListPage() {
     setSelectedQueueId(queueId)
     setSelectedTicket(null)
   }
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search)
+    const q = params.get('queue')
+    const next = q && VALID_QUEUES.has(q) ? q : 'all'
+    setSelectedQueueId(next)
+    setSelectedTicket(null)
+  }, [location.search])
 
   useEffect(() => {
     async function load() {

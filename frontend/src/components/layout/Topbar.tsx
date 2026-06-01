@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import type { UserRole } from '../../types/auth.types'
+import NotificationBell from '../notifications/NotificationBell'
 
 const roleBadgeClass: Record<UserRole, string> = {
   MANAGER: 'bg-purple-100 text-purple-700',
@@ -35,6 +36,8 @@ function Topbar() {
             {role}
           </span>
         )}
+        <div className="w-px h-4 bg-slate-200" />
+        <NotificationBell />
         <div className="w-px h-4 bg-slate-200" />
         <button
           onClick={logout}

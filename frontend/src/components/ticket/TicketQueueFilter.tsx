@@ -17,6 +17,8 @@ export type QueueId =
   | 'mine_in_progress'
   | 'mine_sla_approaching'
   | 'mine_waiting'
+  | 'mine_overdue'
+  | 'my_waiting'
 
 type QueueDefinition = {
   id: QueueId
@@ -40,6 +42,11 @@ const CUSTOMER_QUEUES: QueueDefinition[] = [
       t.status === 'ASSIGNED' ||
       t.status === 'IN_PROGRESS' ||
       t.status === 'WAITING_FOR_CUSTOMER',
+  },
+  {
+    id: 'my_waiting',
+    label: 'Yanıt Beklenenler',
+    predicate: (t) => t.status === 'WAITING_FOR_CUSTOMER',
   },
   {
     id: 'resolved',
@@ -84,6 +91,12 @@ const AGENT_QUEUES: QueueDefinition[] = [
     label: 'Müşteri Yanıtı Bekleyen',
     predicate: (t, userId) =>
       userId !== null && t.assignedToId === userId && t.status === 'WAITING_FOR_CUSTOMER',
+  },
+  {
+    id: 'mine_overdue',
+    label: 'Geciken Taleplerim',
+    predicate: (t, userId) =>
+      userId !== null && t.assignedToId === userId && isOverdue(t),
   },
 ]
 
