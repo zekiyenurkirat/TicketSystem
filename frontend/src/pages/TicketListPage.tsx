@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { fetchTicketsByUser, fetchAllTicketsByStatuses } from '../api/ticket.api'
 import type { TicketResponse } from '../types/ticket.types'
 import TicketTable from '../components/ticket/TicketTable'
 import TicketDetailPanel from '../components/ticket/TicketDetailPanel'
+import TicketQueueFilter, { filterTickets } from '../components/ticket/TicketQueueFilter'
 
 function TicketListPage() {
   const navigate = useNavigate()
@@ -13,10 +14,21 @@ function TicketListPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedTicket, setSelectedTicket] = useState<TicketResponse | null>(null)
+  const [selectedQueueId, setSelectedQueueId] = useState('all')
+
+  const filteredTickets = useMemo(
+    () => filterTickets(tickets, selectedQueueId, role, userId),
+    [tickets, selectedQueueId, role, userId],
+  )
 
   function handleTicketUpdated(updated: TicketResponse) {
     setSelectedTicket(updated)
     setTickets((prev) => prev.map((t) => (t.id === updated.id ? updated : t)))
+  }
+
+  function handleQueueChange(queueId: string) {
+    setSelectedQueueId(queueId)
+    setSelectedTicket(null)
   }
 
   useEffect(() => {
@@ -47,12 +59,22 @@ function TicketListPage() {
 
   return (
     <div className="flex items-start gap-4">
+      <div className="w-52 flex-shrink-0 sticky top-6">
+        <TicketQueueFilter
+          role={role}
+          userId={userId}
+          tickets={tickets}
+          selectedQueueId={selectedQueueId}
+          onQueueChange={handleQueueChange}
+        />
+      </div>
+
       <div className="flex-1 min-w-0 bg-white rounded-xl border border-slate-200 shadow-sm">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
           <h2 className="text-sm font-semibold text-slate-700">Talepler</h2>
           <div className="flex items-center gap-3">
             {!isLoading && !error && (
-              <span className="text-xs text-slate-400">{tickets.length} kayıt</span>
+              <span className="text-xs text-slate-400">{filteredTickets.length} kayıt</span>
             )}
             <button
               onClick={() => navigate('/tickets/create')}
@@ -70,7 +92,7 @@ function TicketListPage() {
         )}
 
         <TicketTable
-          tickets={tickets}
+          tickets={filteredTickets}
           isLoading={isLoading}
           selectedId={selectedTicket?.id ?? null}
           onSelect={setSelectedTicket}
