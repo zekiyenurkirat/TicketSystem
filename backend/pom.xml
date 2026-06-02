@@ -160,6 +160,8 @@
             <groupId>org.springframework.kafka</groupId>
             <artifactId>spring-kafka</artifactId>
         </dependency>
+        <!-- Faz 15c: OpenSearch indexleme Spring RestTemplate ile yapılır;
+             opensearch-java SDK kaldırıldı — AWS SDK transitive zinciri Docker build'i yavaşlatıyordu. -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

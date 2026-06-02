@@ -37,10 +37,18 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
-        spring.json.add.type.headers: false  # 15c OpenSearch consumer tip header uyuşmazlığını önler
+        spring.json.add.type.headers: false  # Consumer type header uyuşmazlığını önler
         max.block.ms: 5000                   # Kafka down iken en fazla 5 sn bekle, sonra soft-fail
         delivery.timeout.ms: 6000
         request.timeout.ms: 3000
+    consumer:
+      group-id: ticket-events-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.ticketsystem.kafka"
+        spring.json.value.default.type: "com.ticketsystem.kafka.TicketEvent"
 
 server:
   port: 8080
@@ -59,5 +67,8 @@ springdoc:
     path: /api-docs
 
 app:
+  opensearch:
+    host: ${OPENSEARCH_HOST:localhost}
+    port: ${OPENSEARCH_PORT:9200}
   upload:
     dir: uploads/
