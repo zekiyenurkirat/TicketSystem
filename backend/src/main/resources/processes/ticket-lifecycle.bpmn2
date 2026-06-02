@@ -1,12 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Faz 14a — spike: Minimal BPMN 2.0 process tanımı.
-  Amaç: KieContainer'ın bu dosyayı yükleyip ProcessInstance
-  başlatabildiğini kanıtlamak.
+  Ticket Yaşam Döngüsü — jBPM 7 BPMN 2.0 process.
 
-  Faz 14b'de bu process şu lifecycle adımlarıyla genişletilecek:
-    NEW → ASSIGNED → IN_PROGRESS → WAITING_FOR_CUSTOMER
-        → RESOLVED → CLOSED / CANCELLED
+  Lineer happy-path akışı:
+    NEW (start) → ASSIGNED → IN_PROGRESS → RESOLVED → CLOSED (end)
+
+  Soft-fail senaryoları (TicketWorkflowService sinyal gönderir;
+  process o noktada değilse jBPM sessizce yok sayar):
+    - CANCELLED: process ASSIGNED/IN_PROGRESS/RESOLVED beklerken → yok sayılır
+    - WAITING_FOR_CUSTOMER: ayrı bir catch event yok → yok sayılır
+    - RESOLVED → IN_PROGRESS (geri açma): process ileriye geçmiş → yok sayılır
+
+  eventBasedGateway, terminateEventDefinition ve branching kullanılmıyor;
+  maksimum jBPM 7 uyumluluğu için kasıtlı olarak basit tutulmuştur.
 -->
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
              xmlns:tns="http://www.jboss.org/drools"
@@ -14,18 +20,57 @@
              targetNamespace="http://www.jboss.org/drools"
              id="Definitions_TicketLifecycle">
 
+  <!-- Signal tanımları — definitions düzeyinde, process dışında -->
+  <signal id="Signal_ASSIGNED"    name="ASSIGNED"/>
+  <signal id="Signal_IN_PROGRESS" name="IN_PROGRESS"/>
+  <signal id="Signal_RESOLVED"    name="RESOLVED"/>
+  <signal id="Signal_CLOSED"      name="CLOSED"/>
+
   <process id="ticket-lifecycle"
            name="Ticket Yaşam Döngüsü"
            isExecutable="true"
            processType="Private">
 
-    <startEvent id="StartEvent_ticketCreated" name="Ticket Oluşturuldu"/>
+    <!-- Ticket oluşturuldu (NEW) -->
+    <startEvent id="Start_ticketCreated" name="Ticket Oluşturuldu"/>
+    <sequenceFlow id="sf_1"
+                  sourceRef="Start_ticketCreated"
+                  targetRef="ICatch_Assigned"/>
 
-    <sequenceFlow id="Flow_1"
-                  sourceRef="StartEvent_ticketCreated"
-                  targetRef="EndEvent_ticketClosed"/>
+    <!-- NEW → ASSIGNED -->
+    <intermediateCatchEvent id="ICatch_Assigned" name="ASSIGNED">
+      <signalEventDefinition id="SED_1" signalRef="Signal_ASSIGNED"/>
+    </intermediateCatchEvent>
+    <sequenceFlow id="sf_2"
+                  sourceRef="ICatch_Assigned"
+                  targetRef="ICatch_InProgress"/>
 
-    <endEvent id="EndEvent_ticketClosed" name="Ticket Tamamlandı"/>
+    <!-- ASSIGNED → IN_PROGRESS -->
+    <intermediateCatchEvent id="ICatch_InProgress" name="IN_PROGRESS">
+      <signalEventDefinition id="SED_2" signalRef="Signal_IN_PROGRESS"/>
+    </intermediateCatchEvent>
+    <sequenceFlow id="sf_3"
+                  sourceRef="ICatch_InProgress"
+                  targetRef="ICatch_Resolved"/>
+
+    <!-- IN_PROGRESS → RESOLVED -->
+    <intermediateCatchEvent id="ICatch_Resolved" name="RESOLVED">
+      <signalEventDefinition id="SED_3" signalRef="Signal_RESOLVED"/>
+    </intermediateCatchEvent>
+    <sequenceFlow id="sf_4"
+                  sourceRef="ICatch_Resolved"
+                  targetRef="ICatch_Closed"/>
+
+    <!-- RESOLVED → CLOSED -->
+    <intermediateCatchEvent id="ICatch_Closed" name="CLOSED">
+      <signalEventDefinition id="SED_4" signalRef="Signal_CLOSED"/>
+    </intermediateCatchEvent>
+    <sequenceFlow id="sf_5"
+                  sourceRef="ICatch_Closed"
+                  targetRef="End_ticketClosed"/>
+
+    <!-- Ticket kapatıldı -->
+    <endEvent id="End_ticketClosed" name="Ticket Kapatıldı"/>
 
   </process>
 

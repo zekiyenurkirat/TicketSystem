@@ -17,6 +17,7 @@ import com.ticketsystem.repository.TicketRepository;
 import com.ticketsystem.service.SlaService;
 import com.ticketsystem.service.TicketService;
 import com.ticketsystem.service.UserService;
+import com.ticketsystem.workflow.TicketWorkflowService;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -57,13 +58,16 @@ public class TicketServiceImpl implements TicketService {
     private final TicketRepository ticketRepository;
     private final UserService userService;
     private final SlaService slaService;
+    private final TicketWorkflowService ticketWorkflowService;
 
     public TicketServiceImpl(TicketRepository ticketRepository,
                              UserService userService,
-                             SlaService slaService) {
+                             SlaService slaService,
+                             TicketWorkflowService ticketWorkflowService) {
         this.ticketRepository = ticketRepository;
         this.userService = userService;
         this.slaService = slaService;
+        this.ticketWorkflowService = ticketWorkflowService;
     }
 
     @Override
@@ -96,7 +100,14 @@ public class TicketServiceImpl implements TicketService {
         ticket.setAssignedTo(null);
         ticket.setDueDate(slaService.calculateDueDate(ticket.getPriority()));
 
-        return ticketRepository.save(ticket);
+        Ticket saved = ticketRepository.save(ticket);
+        // jBPM: Ticket için workflow process başlat (soft-fail)
+        String pid = ticketWorkflowService.startProcess(saved.getId(), saved.getTicketNumber());
+        if (pid != null) {
+            saved.setProcessInstanceId(pid);
+            saved = ticketRepository.save(saved);
+        }
+        return saved;
     }
 
     @Override
@@ -141,7 +152,12 @@ public class TicketServiceImpl implements TicketService {
             throw new BusinessRuleException("Bu statüdeki ticket yeniden atanamaz: " + currentStatus);
         }
 
-        return ticketRepository.save(ticket);
+        Ticket result = ticketRepository.save(ticket);
+        // jBPM: NEW→ASSIGNED geçişinde sinyal gönder (soft-fail)
+        if (currentStatus == TicketStatus.NEW) {
+            ticketWorkflowService.signalProcess(result.getProcessInstanceId(), TicketStatus.ASSIGNED);
+        }
+        return result;
     }
 
     @Override
@@ -174,7 +190,10 @@ public class TicketServiceImpl implements TicketService {
         }
 
         ticket.setStatus(newStatus);
-        return ticketRepository.save(ticket);
+        Ticket result = ticketRepository.save(ticket);
+        // jBPM: Yeni statü için sinyal gönder (soft-fail)
+        ticketWorkflowService.signalProcess(result.getProcessInstanceId(), newStatus);
+        return result;
     }
 
     @Override

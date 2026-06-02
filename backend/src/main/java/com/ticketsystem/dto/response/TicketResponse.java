@@ -41,6 +41,7 @@ public class TicketResponse {
     private LocalDateTime priorityReviewedAt;
     private Long priorityReviewedById;
     private String priorityReviewedByFullName;
+    private String processInstanceId;
 
     /** {@link Ticket} entity'sinden {@link TicketResponse} üretir. */
     public static TicketResponse from(Ticket ticket) {
@@ -85,7 +86,8 @@ public class TicketResponse {
                 ticket.getPriorityReviewNote(),
                 ticket.getPriorityReviewedAt(),
                 priorityReviewedById,
-                priorityReviewedByFullName
+                priorityReviewedByFullName,
+                ticket.getProcessInstanceId()
         );
     }
 }

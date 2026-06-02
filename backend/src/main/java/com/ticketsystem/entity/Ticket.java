@@ -107,4 +107,9 @@ public class Ticket extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "priority_reviewed_by_id", nullable = true)
     private User priorityReviewedBy;
+
+    /** jBPM process instance kimliği. Ticket oluşturulduğunda doldurulur.
+     *  In-memory KieSession restart sonrası sıfırlanır; bu bilinen bir sınırlamadır. */
+    @Column(name = "process_instance_id")
+    private String processInstanceId;
 }
