@@ -21,4 +21,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     /** Belirtilen role sahip ve aktif olan kullanıcıları getirir. */
     List<User> findByRoleAndActiveTrue(Role role);
+
+    /** Belirtilen role sahip en az bir kullanıcı var mı kontrol eder. */
+    boolean existsByRole(Role role);
 }
