@@ -17,12 +17,15 @@ import com.ticketsystem.repository.TicketRepository;
 import com.ticketsystem.service.SlaService;
 import com.ticketsystem.service.TicketService;
 import com.ticketsystem.service.UserService;
+import com.ticketsystem.kafka.TicketEvent;
+import com.ticketsystem.kafka.TicketEventProducer;
 import com.ticketsystem.workflow.TicketWorkflowService;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -59,15 +62,18 @@ public class TicketServiceImpl implements TicketService {
     private final UserService userService;
     private final SlaService slaService;
     private final TicketWorkflowService ticketWorkflowService;
+    private final TicketEventProducer ticketEventProducer;
 
     public TicketServiceImpl(TicketRepository ticketRepository,
                              UserService userService,
                              SlaService slaService,
-                             TicketWorkflowService ticketWorkflowService) {
+                             TicketWorkflowService ticketWorkflowService,
+                             TicketEventProducer ticketEventProducer) {
         this.ticketRepository = ticketRepository;
         this.userService = userService;
         this.slaService = slaService;
         this.ticketWorkflowService = ticketWorkflowService;
+        this.ticketEventProducer = ticketEventProducer;
     }
 
     @Override
@@ -107,6 +113,11 @@ public class TicketServiceImpl implements TicketService {
             saved.setProcessInstanceId(pid);
             saved = ticketRepository.save(saved);
         }
+        // Kafka: ticket oluşturma eventi — DB save sonrası, soft-fail
+        ticketEventProducer.send(new TicketEvent(
+                saved.getId(), saved.getTicketNumber(),
+                "CREATE", null, TicketStatus.NEW,
+                currentUser.getId(), Instant.now().toString()));
         return saved;
     }
 
@@ -157,6 +168,11 @@ public class TicketServiceImpl implements TicketService {
         if (currentStatus == TicketStatus.NEW) {
             ticketWorkflowService.signalProcess(result.getProcessInstanceId(), TicketStatus.ASSIGNED);
         }
+        // Kafka: atama eventi — DB save sonrası, soft-fail
+        ticketEventProducer.send(new TicketEvent(
+                result.getId(), result.getTicketNumber(),
+                "ASSIGN", currentStatus, result.getStatus(),
+                getCurrentUser().getId(), Instant.now().toString()));
         return result;
     }
 
@@ -193,6 +209,11 @@ public class TicketServiceImpl implements TicketService {
         Ticket result = ticketRepository.save(ticket);
         // jBPM: Yeni statü için sinyal gönder (soft-fail)
         ticketWorkflowService.signalProcess(result.getProcessInstanceId(), newStatus);
+        // Kafka: statü değişikliği eventi — DB save sonrası, soft-fail
+        ticketEventProducer.send(new TicketEvent(
+                result.getId(), result.getTicketNumber(),
+                "STATUS_CHANGE", currentStatus, newStatus,
+                currentUser.getId(), Instant.now().toString()));
         return result;
     }
 

@@ -21,6 +21,29 @@ services:
     # Host'a port açılmıyor; yalnızca compose network üzerinden erişilebilir
 
   # ────────────────────────────────
+  # Kafka — KRaft mode (Zookeeper'sız)
+  # ────────────────────────────────
+  kafka:
+    image: apache/kafka:3.7.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    # Host'a port açılmıyor; CLI testleri docker compose exec kafka üzerinden yapılır
+
+  # ────────────────────────────────
   # Spring Boot backend
   # ────────────────────────────────
   backend:
@@ -29,14 +52,17 @@ services:
       - "8080:8080"
     environment:
       # application.yaml'daki değişken adları korundu (DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET)
-      DB_URL:      jdbc:postgresql://postgres:5432/ticketsystemdb
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      JWT_SECRET:  ${JWT_SECRET}
+      DB_URL:                  jdbc:postgresql://postgres:5432/ticketsystemdb
+      DB_USERNAME:             ${DB_USERNAME}
+      DB_PASSWORD:             ${DB_PASSWORD}
+      JWT_SECRET:              ${JWT_SECRET}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
     volumes:
       - uploads_data:/app/uploads
     depends_on:
       postgres:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
 
   # ────────────────────────────────
