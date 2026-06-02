@@ -29,9 +29,9 @@ function SunIcon() {
 }
 
 const roleBadgeClass: Record<UserRole, string> = {
-  MANAGER: 'bg-purple-100 text-purple-700',
-  AGENT: 'bg-violet-100 text-violet-700',
-  CUSTOMER: 'bg-green-100 text-green-700',
+  MANAGER: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  AGENT: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300',
+  CUSTOMER: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
 }
 
 const pageTitles: Record<string, string> = {
@@ -51,32 +51,32 @@ function Topbar() {
   const pageTitle = pageTitles[pathname] ?? 'Dashboard'
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-6 flex-shrink-0">
-      <h1 className="text-base font-semibold text-slate-800">{pageTitle}</h1>
+    <header className="h-16 bg-white border-b border-slate-200 dark:bg-slate-800 dark:border-slate-700 flex items-center justify-between px-6 flex-shrink-0">
+      <h1 className="text-base font-semibold text-slate-800 dark:text-slate-100">{pageTitle}</h1>
 
       <div className="flex items-center gap-3">
         {email && (
-          <span className="text-sm text-slate-600">{email}</span>
+          <span className="text-sm text-slate-600 dark:text-slate-300">{email}</span>
         )}
         {role && (
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${roleBadgeClass[role]}`}>
             {role}
           </span>
         )}
-        <div className="w-px h-4 bg-slate-200" />
+        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
         <NotificationBell />
-        <div className="w-px h-4 bg-slate-200" />
+        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
         <button
           onClick={toggleTheme}
           aria-label="Tema değiştir"
-          className="text-slate-400 hover:text-slate-700 transition-colors"
+          className="text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200 transition-colors"
         >
           {theme === 'dark' ? <SunIcon /> : <MoonIcon />}
         </button>
-        <div className="w-px h-4 bg-slate-200" />
+        <div className="w-px h-4 bg-slate-200 dark:bg-slate-700" />
         <button
           onClick={logout}
-          className="text-sm text-slate-400 hover:text-slate-700 transition-colors"
+          className="text-sm text-slate-400 hover:text-slate-700 dark:text-slate-500 dark:hover:text-slate-200 transition-colors"
         >
           Çıkış
         </button>

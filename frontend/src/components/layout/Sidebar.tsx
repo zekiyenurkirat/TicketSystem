@@ -130,8 +130,8 @@ function Sidebar() {
   )
 
   return (
-    <aside className="w-64 bg-violet-50 flex flex-col flex-shrink-0">
-      <div className="px-6 py-5 border-b border-violet-100">
+    <aside className="w-64 bg-violet-50 dark:bg-slate-800 flex flex-col flex-shrink-0">
+      <div className="px-6 py-5 border-b border-violet-100 dark:border-slate-700">
         <div className="flex items-center gap-2.5">
           <div className="w-7 h-7 bg-violet-600 rounded-md flex items-center justify-center flex-shrink-0">
             <svg
@@ -149,7 +149,7 @@ function Sidebar() {
               <rect x="9" y="3" width="6" height="4" rx="2" />
             </svg>
           </div>
-          <span className="text-violet-950 font-semibold text-[15px] tracking-tight">
+          <span className="text-violet-950 dark:text-violet-200 font-semibold text-[15px] tracking-tight">
             TicketSystem
           </span>
         </div>
@@ -164,8 +164,8 @@ function Sidebar() {
               to={item.path}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive
-                  ? 'bg-violet-200 text-violet-950'
-                  : 'text-violet-700 hover:bg-violet-100 hover:text-violet-900'
+                  ? 'bg-violet-200 text-violet-950 dark:bg-violet-900 dark:text-violet-100'
+                  : 'text-violet-700 hover:bg-violet-100 hover:text-violet-900 dark:text-violet-400 dark:hover:bg-slate-700 dark:hover:text-violet-200'
               }`}
             >
               {item.icon}
