@@ -17,5 +17,14 @@ public enum NotificationType {
     UNASSIGNED_CRITICAL,
 
     /** Bir ticket agent'a atandı. */
-    TICKET_ASSIGNED
+    TICKET_ASSIGNED,
+
+    /** Agent, atanmamış bir ticket için atama isteği oluşturdu; tüm aktif Manager'lara gönderilir. */
+    ASSIGNMENT_REQUEST_CREATED,
+
+    /** Manager, agent'ın atama isteğini onayladı; ilgili agent'a gönderilir. */
+    ASSIGNMENT_REQUEST_APPROVED,
+
+    /** Manager, agent'ın atama isteğini reddetti; ilgili agent'a gönderilir. */
+    ASSIGNMENT_REQUEST_REJECTED
 }
