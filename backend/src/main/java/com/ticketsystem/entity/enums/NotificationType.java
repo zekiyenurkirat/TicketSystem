@@ -26,5 +26,14 @@ public enum NotificationType {
     ASSIGNMENT_REQUEST_APPROVED,
 
     /** Manager, agent'ın atama isteğini reddetti; ilgili agent'a gönderilir. */
-    ASSIGNMENT_REQUEST_REJECTED
+    ASSIGNMENT_REQUEST_REJECTED,
+
+    /** CUSTOMER kayıt talebi oluşturdu; tüm aktif Manager'lara gönderilir. */
+    REGISTRATION_REQUEST_CREATED,
+
+    /** Manager kayıt talebini onayladı; hesabı oluşturulan kullanıcıya gönderilir. */
+    REGISTRATION_REQUEST_APPROVED,
+
+    /** Manager kayıt talebini reddetti. Hesap oluşturulmadığından bildirim gönderilmez; enum ileride e-posta akışı için tutulur. */
+    REGISTRATION_REQUEST_REJECTED
 }
