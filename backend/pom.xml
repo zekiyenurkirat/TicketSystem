@@ -162,6 +162,22 @@
         </dependency>
         <!-- Faz 15c: OpenSearch indexleme Spring RestTemplate ile yapılır;
              opensearch-java SDK kaldırıldı — AWS SDK transitive zinciri Docker build'i yavaşlatıyordu. -->
+        <!-- Faz 16: Spring Boot Actuator — /actuator/health ve /actuator/prometheus endpoint'leri -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-starter-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Faz 16: Micrometer Prometheus registry — Prometheus scrape formatında metrik export -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>

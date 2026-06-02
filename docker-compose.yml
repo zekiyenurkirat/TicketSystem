@@ -110,9 +110,38 @@ services:
     depends_on:
       - backend
 
+  # ────────────────────────────────
+  # Prometheus — metrics scraper, localhost:9090
+  # ────────────────────────────────
+  prometheus:
+    image: prom/prometheus:v2.51.2
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    depends_on:
+      - backend
+
+  # ────────────────────────────────
+  # Grafana — dashboard, localhost:3001
+  # Frontend 3000 kullandığı için Grafana 3001'de
+  # ────────────────────────────────
+  grafana:
+    image: grafana/grafana:10.4.2
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
 # ────────────────────────────────
 # Kalıcı volume tanımları
 # ────────────────────────────────
 volumes:
   postgres_data:   # PostgreSQL veri dizini
   uploads_data:    # Backend dosya yükleme dizini (/app/uploads)
+  grafana_data:    # Grafana dashboard ve datasource ayarları

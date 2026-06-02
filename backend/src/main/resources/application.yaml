@@ -72,3 +72,13 @@ app:
     port: ${OPENSEARCH_PORT:9200}
   upload:
     dir: uploads/
+
+# Faz 16: Actuator — sadece health, info, prometheus, metrics açık; diğerleri kapalı
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always

@@ -59,6 +59,7 @@ public class SecurityConfig {
                     "/v3/api-docs/**",
                     "/api-docs/**"
                 ).permitAll()
+                .requestMatchers("/actuator/health", "/actuator/prometheus").permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/admin").hasRole("MANAGER")
                 .requestMatchers(HttpMethod.GET,   "/api/v1/users/role/*/active").hasAnyRole("AGENT", "MANAGER")
