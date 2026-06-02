@@ -5,14 +5,14 @@ import type { NotificationSeverity } from '../../hooks/useNotifications'
 
 const SEVERITY_ROW: Record<NotificationSeverity, string> = {
   critical: 'border-l-red-500 bg-red-50',
-  warning: 'border-l-amber-400 bg-amber-50',
-  info: 'border-l-blue-400 bg-blue-50',
+  warning:  'border-l-amber-400 bg-amber-50',
+  info:     'border-l-blue-400 bg-blue-50',
 }
 
 const SEVERITY_TEXT: Record<NotificationSeverity, string> = {
   critical: 'text-red-700',
-  warning: 'text-amber-700',
-  info: 'text-blue-700',
+  warning:  'text-amber-700',
+  info:     'text-blue-700',
 }
 
 function BellIcon() {
@@ -35,7 +35,7 @@ function BellIcon() {
 }
 
 function NotificationBell() {
-  const { items, totalCount, isLoading } = useNotifications()
+  const { items, unseenCount, isLoading, markSeen, markAllSeen } = useNotifications()
   const [open, setOpen] = useState(false)
 
   return (
@@ -46,9 +46,9 @@ function NotificationBell() {
         aria-label="Bildirimler"
       >
         <BellIcon />
-        {!isLoading && totalCount > 0 && (
+        {!isLoading && unseenCount > 0 && (
           <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[1rem] h-4 px-1 rounded-full bg-red-500 text-white text-[10px] font-bold leading-none">
-            {totalCount}
+            {unseenCount}
           </span>
         )}
       </button>
@@ -60,12 +60,23 @@ function NotificationBell() {
             onClick={() => setOpen(false)}
           />
           <div className="absolute right-0 top-10 z-50 w-72 bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
-            <div className="px-4 py-3 border-b border-slate-100">
+
+            {/* Başlık + tümünü okundu butonu */}
+            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
               <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                 Bildirimler
               </h3>
+              {unseenCount > 0 && (
+                <button
+                  onClick={() => markAllSeen()}
+                  className="text-[11px] text-violet-600 hover:text-violet-800 font-medium transition-colors"
+                >
+                  Tümünü okundu işaretle
+                </button>
+              )}
             </div>
 
+            {/* İçerik */}
             {isLoading ? (
               <div className="px-4 py-3 space-y-2">
                 {[1, 2].map((i) => (
@@ -77,18 +88,29 @@ function NotificationBell() {
                 <p className="text-sm text-slate-400">Bildirim yok</p>
               </div>
             ) : (
-              <ul className="py-1">
+              <ul className="py-1 max-h-80 overflow-y-auto">
                 {items.map((item) => (
                   <li key={item.id}>
                     <Link
                       to={item.to}
-                      onClick={() => setOpen(false)}
-                      className={`flex w-full items-center gap-3 px-4 py-3 border-l-4 transition-opacity hover:opacity-80 ${SEVERITY_ROW[item.severity]}`}
+                      onClick={() => {
+                        if (!item.seen) markSeen(item.id)
+                        setOpen(false)
+                      }}
+                      className={`flex w-full items-center gap-3 px-4 py-3 border-l-4 transition-opacity hover:opacity-80 ${
+                        SEVERITY_ROW[item.severity]
+                      } ${item.seen ? 'opacity-40' : ''}`}
                     >
-                      <span className={`flex-1 text-xs font-medium leading-snug pointer-events-none ${SEVERITY_TEXT[item.severity]}`}>
+                      <span
+                        className={`flex-1 text-xs font-medium leading-snug pointer-events-none ${
+                          SEVERITY_TEXT[item.severity]
+                        }`}
+                      >
                         {item.message}
                       </span>
-                      <span className="text-slate-400 text-xs flex-shrink-0 pointer-events-none">→</span>
+                      <span className="text-slate-400 text-xs flex-shrink-0 pointer-events-none">
+                        →
+                      </span>
                     </Link>
                   </li>
                 ))}

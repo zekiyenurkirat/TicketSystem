@@ -1,149 +1,120 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import {
-  fetchAllTicketsByStatuses,
-  fetchTicketsByAgent,
-  fetchTicketsByUser,
-} from '../api/ticket.api'
-import type { TicketResponse } from '../types/ticket.types'
-import { CLOSED_TERMINAL, isOverdue, isSlaApproaching } from '../utils/ticketUtils'
+  fetchMyNotifications,
+  markNotificationSeen,
+  markAllNotificationsSeen,
+} from '../api/notification.api'
+import type { NotificationType } from '../types/notification.types'
+import type { UserRole } from '../types/auth.types'
 
 export type NotificationSeverity = 'critical' | 'warning' | 'info'
 
 export type NotificationItem = {
-  id: string
+  id: number
   severity: NotificationSeverity
   message: string
   to: string
-  count: number
+  seen: boolean
 }
 
-function buildManagerNotifications(tickets: TicketResponse[]): NotificationItem[] {
-  const unassignedCritical = tickets.filter(
-    (t) =>
-      t.assignedToId === null &&
-      (t.priority === 'BLOCKER' || t.priority === 'CRITICAL') &&
-      !CLOSED_TERMINAL.has(t.status),
-  ).length
-
-  const overdueCount = tickets.filter((t) => isOverdue(t)).length
-  const slaApproachingCount = tickets.filter((t) => isSlaApproaching(t)).length
-
-  return [
-    {
-      id: 'mgr_unassigned_critical',
-      severity: 'critical',
-      message: `${unassignedCritical} atanmamış Kritik/Blocker talep`,
-      to: '/tickets?queue=unassigned_critical',
-      count: unassignedCritical,
-    },
-    {
-      id: 'mgr_overdue',
-      severity: 'critical',
-      message: `${overdueCount} geciken talep`,
-      to: '/tickets?queue=overdue',
-      count: overdueCount,
-    },
-    {
-      id: 'mgr_sla_approaching',
-      severity: 'warning',
-      message: `${slaApproachingCount} talep SLA'ya yaklaşıyor`,
-      to: '/tickets?queue=sla_approaching',
-      count: slaApproachingCount,
-    },
-  ]
+function resolveSeverity(type: NotificationType): NotificationSeverity {
+  switch (type) {
+    case 'SLA_BREACHED':
+    case 'UNASSIGNED_CRITICAL':
+      return 'critical'
+    case 'SLA_APPROACHING':
+      return 'warning'
+    case 'TICKET_ASSIGNED':
+      return 'info'
+    default:
+      return 'info'
+  }
 }
 
-function buildAgentNotifications(tickets: TicketResponse[]): NotificationItem[] {
-  const overdueCount = tickets.filter((t) => isOverdue(t)).length
-  const slaApproachingCount = tickets.filter((t) => isSlaApproaching(t)).length
-  const waitingCount = tickets.filter((t) => t.status === 'WAITING_FOR_CUSTOMER').length
-
-  return [
-    {
-      id: 'agent_overdue',
-      severity: 'critical',
-      message: `${overdueCount} atanan talep gecikmiş`,
-      to: '/tickets?queue=mine_overdue',
-      count: overdueCount,
-    },
-    {
-      id: 'agent_sla_approaching',
-      severity: 'warning',
-      message: `${slaApproachingCount} atanan talep SLA'ya yaklaşıyor`,
-      to: '/tickets?queue=mine_sla_approaching',
-      count: slaApproachingCount,
-    },
-    {
-      id: 'agent_waiting',
-      severity: 'info',
-      message: `${waitingCount} talep müşteri yanıtı bekliyor`,
-      to: '/tickets?queue=mine_waiting',
-      count: waitingCount,
-    },
-  ]
-}
-
-function buildCustomerNotifications(tickets: TicketResponse[]): NotificationItem[] {
-  const waitingCount = tickets.filter((t) => t.status === 'WAITING_FOR_CUSTOMER').length
-  const resolvedCount = tickets.filter((t) => t.status === 'RESOLVED').length
-
-  return [
-    {
-      id: 'cust_waiting',
-      severity: 'warning',
-      message: `${waitingCount} talep yanıtınızı bekliyor`,
-      to: '/tickets?queue=my_waiting',
-      count: waitingCount,
-    },
-    {
-      id: 'cust_resolved',
-      severity: 'info',
-      message: `${resolvedCount} talep kapatılmayı bekliyor`,
-      to: '/tickets?queue=resolved',
-      count: resolvedCount,
-    },
-  ]
+function resolveLink(type: NotificationType, role: UserRole | null): string {
+  if (role === 'MANAGER') {
+    switch (type) {
+      case 'SLA_BREACHED':        return '/tickets?queue=overdue'
+      case 'SLA_APPROACHING':     return '/tickets?queue=sla_approaching'
+      case 'UNASSIGNED_CRITICAL': return '/tickets?queue=unassigned_critical'
+      default:                    return '/tickets'
+    }
+  }
+  if (role === 'AGENT') {
+    switch (type) {
+      case 'SLA_BREACHED':    return '/tickets?queue=mine_overdue'
+      case 'SLA_APPROACHING': return '/tickets?queue=mine_sla_approaching'
+      case 'TICKET_ASSIGNED': return '/tickets?queue=mine'
+      default:                return '/tickets'
+    }
+  }
+  // CUSTOMER şu an backend'den bildirim almıyor; fallback güvenli.
+  return '/tickets'
 }
 
 export function useNotifications(): {
   items: NotificationItem[]
-  totalCount: number
+  unseenCount: number
   isLoading: boolean
+  markSeen: (id: number) => Promise<void>
+  markAllSeen: () => Promise<void>
+  refresh: () => Promise<void>
 } {
-  const { role, userId } = useAuth()
-  const [tickets, setTickets] = useState<TicketResponse[]>([])
+  const { role } = useAuth()
+  const [items, setItems] = useState<NotificationItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
-  useEffect(() => {
-    async function load() {
-      setIsLoading(true)
-      try {
-        let data: TicketResponse[] = []
-        if (role === 'MANAGER') {
-          data = await fetchAllTicketsByStatuses()
-        } else if (role === 'AGENT' && userId !== null) {
-          data = await fetchTicketsByAgent(userId)
-        } else if (role === 'CUSTOMER' && userId !== null) {
-          data = await fetchTicketsByUser(userId)
-        }
-        setTickets(data)
-      } catch {
-        setTickets([])
-      } finally {
-        setIsLoading(false)
-      }
+  const load = useCallback(async () => {
+    setIsLoading(true)
+    try {
+      const data = await fetchMyNotifications()
+      const mapped: NotificationItem[] = data.map((n) => ({
+        id: n.id,
+        severity: resolveSeverity(n.type),
+        message: n.message,
+        to: resolveLink(n.type, role),
+        seen: n.seen,
+      }))
+      setItems(mapped)
+    } catch {
+      setItems([])
+    } finally {
+      setIsLoading(false)
     }
+  }, [role])
+
+  useEffect(() => {
     load()
-  }, [role, userId])
+  }, [load])
 
-  const items = useMemo((): NotificationItem[] => {
-    let all: NotificationItem[] = []
-    if (role === 'MANAGER') all = buildManagerNotifications(tickets)
-    else if (role === 'AGENT') all = buildAgentNotifications(tickets)
-    else if (role === 'CUSTOMER') all = buildCustomerNotifications(tickets)
-    return all.filter((item) => item.count > 0)
-  }, [tickets, role])
+  const markSeen = useCallback(async (id: number) => {
+    // Optimistik güncelleme — kullanıcı anında tepki alır
+    setItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, seen: true } : item)),
+    )
+    try {
+      await markNotificationSeen(id)
+    } catch {
+      // Hata durumunda geri al
+      setItems((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, seen: false } : item)),
+      )
+    }
+  }, [])
 
-  return { items, totalCount: items.length, isLoading }
+  const markAllSeen = useCallback(async () => {
+    // Optimistik güncelleme
+    setItems((prev) => prev.map((item) => ({ ...item, seen: true })))
+    try {
+      await markAllNotificationsSeen()
+    } catch {
+      // Hata durumunda sunucudan taze veri çek
+      await load()
+    }
+  }, [load])
+
+  const unseenCount = items.filter((item) => !item.seen).length
+
+  return { items, unseenCount, isLoading, markSeen, markAllSeen, refresh: load }
 }
