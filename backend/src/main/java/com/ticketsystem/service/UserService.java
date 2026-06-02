@@ -9,9 +9,6 @@ import java.util.List;
 /** Kullanıcı yönetimi iş kurallarını tanımlar. */
 public interface UserService {
 
-    /** Yeni kullanıcı oluşturur ve kaydeder. */
-    User createUser(CreateUserRequest request);
-
     /** ID ile kullanıcı getirir. */
     User getUserById(Long id);
 

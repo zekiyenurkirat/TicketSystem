@@ -60,7 +60,6 @@ public class SecurityConfig {
                     "/api-docs/**"
                 ).permitAll()
                 .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/v1/users").permitAll()
                 .requestMatchers(HttpMethod.POST, "/api/v1/users/admin").hasRole("MANAGER")
                 .requestMatchers(HttpMethod.GET,   "/api/v1/users/role/*/active").hasAnyRole("AGENT", "MANAGER")
                 .requestMatchers(HttpMethod.PATCH, "/api/v1/users/*/deactivate").hasRole("MANAGER")

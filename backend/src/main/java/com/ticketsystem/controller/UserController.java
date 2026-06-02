@@ -28,24 +28,6 @@ public class UserController {
         this.userService = userService;
     }
 
-    /** Yeni kullanıcı oluşturur. */
-    @Operation(summary = "Yeni kullanıcı oluşturur",
-               description = "Sistemde yeni bir kullanıcı kaydı oluşturur. E-posta adresi benzersiz olmalıdır.")
-    @ApiResponses({
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Kullanıcı başarıyla oluşturuldu."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Validasyon hatası veya geçersiz istek."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "409", description = "Bu e-posta adresiyle kayıtlı kullanıcı zaten mevcut."),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Beklenmeyen bir hata oluştu.")
-    })
-    @PostMapping
-    public ResponseEntity<ApiResponse<UserResponse>> createUser(
-            @RequestBody @Valid CreateUserRequest request) {
-        User user = userService.createUser(request);
-        UserResponse response = UserResponse.from(user);
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(response, "Kullanıcı başarıyla oluşturuldu."));
-    }
-
     /** MANAGER tarafından herhangi bir rolle kullanıcı oluşturur. */
     @Operation(summary = "MANAGER tarafından kullanıcı oluşturur",
                description = "Yalnızca MANAGER rolüne sahip kullanıcılar çağırabilir. AGENT, MANAGER veya CUSTOMER rolünde kullanıcı oluşturulabilir.")
