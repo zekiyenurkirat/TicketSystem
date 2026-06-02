@@ -16,13 +16,13 @@ const STATUS_LABELS: Record<TicketStatus, string> = {
 }
 
 const STATUS_BADGE: Record<TicketStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-700',
-  ASSIGNED: 'bg-violet-100 text-violet-700',
-  IN_PROGRESS: 'bg-amber-100 text-amber-700',
-  WAITING_FOR_CUSTOMER: 'bg-orange-100 text-orange-700',
-  RESOLVED: 'bg-green-100 text-green-700',
-  CLOSED: 'bg-slate-100 text-slate-600',
-  CANCELLED: 'bg-red-100 text-red-600',
+  NEW: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+  ASSIGNED: 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300',
+  IN_PROGRESS: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  WAITING_FOR_CUSTOMER: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
+  RESOLVED: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  CLOSED: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
+  CANCELLED: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 }
 
 const PRIORITY_LABELS: Record<Priority, string> = {
@@ -34,11 +34,11 @@ const PRIORITY_LABELS: Record<Priority, string> = {
 }
 
 const PRIORITY_BADGE: Record<Priority, string> = {
-  BLOCKER: 'bg-red-200 text-red-800',
-  CRITICAL: 'bg-red-100 text-red-700',
-  HIGH: 'bg-orange-100 text-orange-700',
-  MEDIUM: 'bg-yellow-100 text-yellow-700',
-  LOW: 'bg-slate-100 text-slate-600',
+  BLOCKER: 'bg-red-200 dark:bg-red-900/40 text-red-800 dark:text-red-300',
+  CRITICAL: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+  HIGH: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+  MEDIUM: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+  LOW: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
 }
 
 const IMPACT_LABELS: Record<Impact, string> = {
@@ -74,7 +74,7 @@ function DetailField({ label, value }: DetailFieldProps) {
       <dt className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-0.5">
         {label}
       </dt>
-      <dd className="text-sm text-slate-700">{value}</dd>
+      <dd className="text-sm text-slate-700 dark:text-slate-200">{value}</dd>
     </div>
   )
 }
@@ -104,17 +104,17 @@ type TicketDetailPanelProps = {
 function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelProps) {
   if (!ticket) {
     return (
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm flex items-center justify-center py-20">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center py-20">
         <p className="text-sm text-slate-400">← Listeden bir talep seçin</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-5.5rem)]">
-      <div className="px-5 py-4 border-b border-slate-100 flex-shrink-0">
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden flex flex-col max-h-[calc(100vh-5.5rem)]">
+      <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-700 flex-shrink-0">
         <p className="font-mono text-xs text-slate-400 mb-1">{ticket.ticketNumber}</p>
-        <h3 className="text-sm font-semibold text-slate-800 leading-snug mb-3">
+        <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-snug mb-3">
           {ticket.title}
         </h3>
         <div className="flex items-center gap-2 flex-wrap">
@@ -133,7 +133,7 @@ function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelP
 
       <div className="px-5 py-4 space-y-5 overflow-y-auto flex-1">
         <Section title="Açıklama">
-          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap">
             {ticket.description}
           </p>
         </Section>
@@ -173,7 +173,7 @@ function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelP
 
         {ticket.priorityReviewNote && (
           <Section title="Öncelik İncelemesi">
-            <p className="text-sm text-slate-700 leading-relaxed mb-3">
+            <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed mb-3">
               {ticket.priorityReviewNote}
             </p>
             <dl className="grid grid-cols-2 gap-x-4 gap-y-3">

@@ -48,7 +48,7 @@ function TicketCreatePage() {
   if (userId === null) {
     return (
       <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm px-6 py-12 text-center">
+        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm px-6 py-12 text-center">
           <p className="text-sm text-red-600">
             Kullanıcı kimliği bulunamadı. Lütfen çıkış yapıp tekrar giriş yapın.
           </p>
@@ -119,15 +119,15 @@ function TicketCreatePage() {
       <div className="mb-5 flex items-center gap-3">
         <button
           onClick={() => navigate('/tickets')}
-          className="text-sm text-slate-400 hover:text-slate-700 transition-colors"
+          className="text-sm text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
         >
           ← Talepler
         </button>
-        <span className="text-slate-200">/</span>
-        <h2 className="text-sm font-semibold text-slate-800">Yeni Talep Oluştur</h2>
+        <span className="text-slate-200 dark:text-slate-600">/</span>
+        <h2 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Yeni Talep Oluştur</h2>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
+      <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <form
           noValidate
           onSubmit={(e) => {
@@ -138,7 +138,7 @@ function TicketCreatePage() {
           <div className="px-6 py-5 space-y-5">
             {/* Başlık */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                 Başlık <span className="text-red-500">*</span>
               </label>
               <input
@@ -150,8 +150,8 @@ function TicketCreatePage() {
                   clearFieldError('title')
                 }}
                 placeholder="Sorunu kısaca özetleyin"
-                className={`w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400 ${
-                  errors.title ? 'border-red-300' : 'border-slate-200'
+                className={`w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400 ${
+                  errors.title ? 'border-red-300 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'
                 }`}
               />
               <div className="flex justify-between mt-1">
@@ -168,7 +168,7 @@ function TicketCreatePage() {
 
             {/* Açıklama */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                 Açıklama <span className="text-red-500">*</span>
               </label>
               <textarea
@@ -180,8 +180,8 @@ function TicketCreatePage() {
                 }}
                 placeholder="Sorunu ayrıntılı açıklayın"
                 rows={4}
-                className={`w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400 resize-none ${
-                  errors.description ? 'border-red-300' : 'border-slate-200'
+                className={`w-full px-3 py-2 text-sm rounded-lg border transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400 resize-none ${
+                  errors.description ? 'border-red-300 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'
                 }`}
               />
               {errors.description && (
@@ -191,7 +191,7 @@ function TicketCreatePage() {
 
             {/* Müşteri Önceliği */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                 Öncelik <span className="text-red-500">*</span>
               </label>
               <select
@@ -201,8 +201,8 @@ function TicketCreatePage() {
                   setCustomerPriority(e.target.value as Priority)
                   clearFieldError('customerPriority')
                 }}
-                className={`w-full px-3 py-2 text-sm rounded-lg border bg-white transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent disabled:bg-slate-50 disabled:text-slate-400 ${
-                  errors.customerPriority ? 'border-red-300' : 'border-slate-200'
+                className={`w-full px-3 py-2 text-sm rounded-lg border bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 transition-colors focus:outline-none focus:ring-2 focus:ring-violet-400 focus:border-transparent disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400 ${
+                  errors.customerPriority ? 'border-red-300 dark:border-red-600' : 'border-slate-200 dark:border-slate-600'
                 }`}
               >
                 <option value="">— Seçiniz —</option>
@@ -219,7 +219,7 @@ function TicketCreatePage() {
 
             {/* Etki */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                 Etki <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -234,12 +234,12 @@ function TicketCreatePage() {
                     }}
                     className={`flex flex-col p-3 rounded-lg border text-left transition-colors disabled:opacity-50 ${
                       impact === opt.value
-                        ? 'border-violet-400 bg-violet-50'
-                        : 'border-slate-200 hover:border-violet-200 hover:bg-slate-50'
+                        ? 'border-violet-400 dark:border-violet-500 bg-violet-50 dark:bg-violet-900/20'
+                        : 'border-slate-200 dark:border-slate-600 hover:border-violet-200 dark:hover:border-violet-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
-                    <span className="text-sm font-medium text-slate-800">{opt.label}</span>
-                    <span className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{opt.label}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
                       {opt.description}
                     </span>
                   </button>
@@ -252,7 +252,7 @@ function TicketCreatePage() {
 
             {/* Aciliyet */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                 Aciliyet <span className="text-red-500">*</span>
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -267,12 +267,12 @@ function TicketCreatePage() {
                     }}
                     className={`flex flex-col p-3 rounded-lg border text-left transition-colors disabled:opacity-50 ${
                       urgency === opt.value
-                        ? 'border-violet-400 bg-violet-50'
-                        : 'border-slate-200 hover:border-violet-200 hover:bg-slate-50'
+                        ? 'border-violet-400 dark:border-violet-500 bg-violet-50 dark:bg-violet-900/20'
+                        : 'border-slate-200 dark:border-slate-600 hover:border-violet-200 dark:hover:border-violet-700 hover:bg-slate-50 dark:hover:bg-slate-700'
                     }`}
                   >
-                    <span className="text-sm font-medium text-slate-800">{opt.label}</span>
-                    <span className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+                    <span className="text-sm font-medium text-slate-800 dark:text-slate-100">{opt.label}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-relaxed">
                       {opt.description}
                     </span>
                   </button>
@@ -285,17 +285,17 @@ function TicketCreatePage() {
           </div>
 
           {submitError && (
-            <div className="mx-6 mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
-              <p className="text-sm text-red-700">{submitError}</p>
+            <div className="mx-6 mb-4 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <p className="text-sm text-red-700 dark:text-red-400">{submitError}</p>
             </div>
           )}
 
-          <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3">
+          <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-700 flex justify-end gap-3">
             <button
               type="button"
               disabled={isSubmitting}
               onClick={() => navigate('/tickets')}
-              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
             >
               İptal
             </button>

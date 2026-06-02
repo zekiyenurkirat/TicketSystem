@@ -60,19 +60,19 @@ function UserManagementPage() {
   }
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-      <div className="px-6 py-4 border-b border-slate-200">
-        <h2 className="text-sm font-semibold text-slate-700">Kullanıcı Oluştur</h2>
+    <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700">
+        <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Kullanıcı Oluştur</h2>
       </div>
 
       <div className="px-6 py-6 max-w-md">
         {successMsg && (
-          <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+          <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 text-sm">
             {successMsg}
           </div>
         )}
         {errorMsg && (
-          <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+          <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 text-sm">
             {errorMsg}
           </div>
         )}
@@ -80,7 +80,7 @@ function UserManagementPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="firstName">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor="firstName">
                 Ad
               </label>
               <input
@@ -90,11 +90,11 @@ function UserManagementPage() {
                 required
                 value={form.firstName}
                 onChange={handleChange}
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="lastName">
+              <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor="lastName">
                 Soyad
               </label>
               <input
@@ -104,13 +104,13 @@ function UserManagementPage() {
                 required
                 value={form.lastName}
                 onChange={handleChange}
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+                className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="email">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor="email">
               E-posta
             </label>
             <input
@@ -120,12 +120,12 @@ function UserManagementPage() {
               required
               value={form.email}
               onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="role">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor="role">
               Rol
             </label>
             <select
@@ -134,7 +134,7 @@ function UserManagementPage() {
               required
               value={form.role}
               onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
             >
               {ROLES.map((r) => (
                 <option key={r} value={r}>
@@ -145,7 +145,7 @@ function UserManagementPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="password">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor="password">
               Şifre
             </label>
             <input
@@ -156,12 +156,12 @@ function UserManagementPage() {
               minLength={8}
               value={form.password}
               onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="passwordConfirm">
+            <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1" htmlFor="passwordConfirm">
               Şifre Tekrar
             </label>
             <input
@@ -172,7 +172,7 @@ function UserManagementPage() {
               minLength={8}
               value={form.passwordConfirm}
               onChange={handleChange}
-              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              className="w-full px-3 py-2 text-sm border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
             />
           </div>
 

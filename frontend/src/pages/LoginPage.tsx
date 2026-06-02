@@ -27,8 +27,8 @@ function Logo() {
           <rect x="9" y="3" width="6" height="4" rx="2" />
         </svg>
       </div>
-      <h1 className="text-2xl font-semibold text-slate-800">TicketSystem</h1>
-      <p className="text-sm text-slate-500 mt-1">IT Servis Yönetim Sistemi</p>
+      <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">TicketSystem</h1>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">IT Servis Yönetim Sistemi</p>
     </div>
   )
 }
@@ -36,10 +36,10 @@ function Logo() {
 // ─── Shared field classes ─────────────────────────────────────────────────────
 
 function fieldCls(hasError: boolean) {
-  return `w-full px-3.5 py-2.5 rounded-lg border text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-400 ${
+  return `w-full px-3.5 py-2.5 rounded-lg border text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700 outline-none transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 ${
     hasError
-      ? 'border-red-300 focus:border-red-400'
-      : 'border-slate-200 focus:border-violet-400'
+      ? 'border-red-300 focus:border-red-400 dark:border-red-600'
+      : 'border-slate-200 focus:border-violet-400 dark:border-slate-600 dark:focus:border-violet-500'
   }`
 }
 
@@ -234,17 +234,17 @@ function LoginPage() {
   // ── render ─────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <Logo />
 
         {view === 'login' ? (
           <>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
               <form onSubmit={handleLoginSubmit} noValidate>
 
                 <div className="mb-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                     Email
                   </label>
                   <input
@@ -261,7 +261,7 @@ function LoginPage() {
                 </div>
 
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                     Parola
                   </label>
                   <input
@@ -278,8 +278,8 @@ function LoginPage() {
                 </div>
 
                 {loginServerError && (
-                  <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-                    <p className="text-sm text-red-600">{loginServerError}</p>
+                  <div className="mb-5 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <p className="text-sm text-red-600 dark:text-red-400">{loginServerError}</p>
                   </div>
                 )}
 
@@ -294,7 +294,7 @@ function LoginPage() {
               </form>
             </div>
 
-            <p className="text-center text-sm text-slate-500 mt-5">
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
               Hesabın yok mu?{' '}
               <button
                 type="button"
@@ -307,15 +307,15 @@ function LoginPage() {
           </>
         ) : (
           <>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
 
               {regSuccess ? (
                 <div className="py-2">
-                  <div className="px-4 py-4 bg-green-50 border border-green-200 rounded-lg mb-6">
-                    <p className="text-sm text-green-700 font-medium">
+                  <div className="px-4 py-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg mb-6">
+                    <p className="text-sm text-green-700 dark:text-green-400 font-medium">
                       Kayıt talebiniz alındı.
                     </p>
-                    <p className="text-sm text-green-600 mt-1">
+                    <p className="text-sm text-green-600 dark:text-green-500 mt-1">
                       MANAGER onayı sonrası giriş yapabilirsiniz.
                     </p>
                   </div>
@@ -332,7 +332,7 @@ function LoginPage() {
 
                   <div className="grid grid-cols-2 gap-3 mb-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                         Ad
                       </label>
                       <input
@@ -348,7 +348,7 @@ function LoginPage() {
                       )}
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                         Soyad
                       </label>
                       <input
@@ -366,7 +366,7 @@ function LoginPage() {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                       Email
                     </label>
                     <input
@@ -383,7 +383,7 @@ function LoginPage() {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                       Parola
                     </label>
                     <input
@@ -400,7 +400,7 @@ function LoginPage() {
                   </div>
 
                   <div className="mb-4">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                       Parola tekrar
                     </label>
                     <input
@@ -417,22 +417,22 @@ function LoginPage() {
                   </div>
 
                   <div className="mb-6">
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
                       Not{' '}
-                      <span className="text-slate-400 font-normal">(opsiyonel)</span>
+                      <span className="text-slate-400 dark:text-slate-500 font-normal">(opsiyonel)</span>
                     </label>
                     <textarea
                       value={reg.note}
                       onChange={(e) => setRegField('note', e.target.value)}
                       placeholder="Kendinizi kısaca tanıtın..."
                       rows={3}
-                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 focus:border-violet-400 text-sm text-slate-800 outline-none transition-colors placeholder:text-slate-400 resize-none"
+                      className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 dark:border-slate-600 focus:border-violet-400 dark:focus:border-violet-500 text-sm text-slate-800 dark:text-slate-100 bg-white dark:bg-slate-700 outline-none transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500 resize-none"
                     />
                   </div>
 
                   {regServerError && (
-                    <div className="mb-5 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-                      <p className="text-sm text-red-600">{regServerError}</p>
+                    <div className="mb-5 px-4 py-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                      <p className="text-sm text-red-600 dark:text-red-400">{regServerError}</p>
                     </div>
                   )}
 
@@ -448,7 +448,7 @@ function LoginPage() {
               )}
             </div>
 
-            <p className="text-center text-sm text-slate-500 mt-5">
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
               Zaten hesabın var mı?{' '}
               <button
                 type="button"

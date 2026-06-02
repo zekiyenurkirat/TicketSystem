@@ -159,12 +159,12 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
   }
 
   return (
-    <div className="border-t border-slate-100 px-5 py-4 space-y-4">
+    <div className="border-t border-slate-100 dark:border-slate-700 px-5 py-4 space-y-4">
       <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">İşlemler</h4>
 
       {showStatus && (
         <div>
-          <p className="text-xs font-medium text-slate-600 mb-1.5">Statü Değiştir</p>
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Statü Değiştir</p>
           <div className="flex gap-2">
             <select
               value={newStatus ?? ''}
@@ -173,7 +173,7 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
                 setNewStatus(e.target.value ? (e.target.value as TicketStatus) : null)
                 setStatusError(null)
               }}
-              className="flex-1 px-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 disabled:text-slate-400"
+              className="flex-1 px-2 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400"
             >
               <option value="">— Seçiniz —</option>
               {availableTransitions.map((s) => (
@@ -196,7 +196,7 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
 
       {showAssign && (
         <div>
-          <p className="text-xs font-medium text-slate-600 mb-1.5">Agent Atama</p>
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Agent Atama</p>
           {agentsError && <p className="mb-1 text-xs text-red-600">{agentsError}</p>}
           <div className="flex gap-2">
             <select
@@ -206,7 +206,7 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
                 setSelectedAgentId(e.target.value ? Number(e.target.value) : null)
                 setAssignError(null)
               }}
-              className="flex-1 px-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 disabled:text-slate-400"
+              className="flex-1 px-2 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400"
             >
               <option value="">
                 {agentsLoading ? 'Yükleniyor...' : '— Agent seçin —'}
@@ -231,7 +231,7 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
 
       {showReview && (
         <div>
-          <p className="text-xs font-medium text-slate-600 mb-1.5">Öncelik İncelemesi</p>
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Öncelik İncelemesi</p>
           <select
             value={reviewPriority}
             disabled={reviewSubmitting}
@@ -239,7 +239,7 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
               setReviewPriority(e.target.value as Priority)
               setReviewError(null)
             }}
-            className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 disabled:text-slate-400 mb-2"
+            className="w-full px-2 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400 mb-2"
           >
             {PRIORITY_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -254,7 +254,7 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
             rows={2}
             placeholder="İnceleme notu (opsiyonel)"
             onChange={(e) => setReviewNote(e.target.value)}
-            className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 disabled:text-slate-400 resize-none mb-2"
+            className="w-full px-2 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400 resize-none mb-2"
           />
           <div className="flex items-center justify-between">
             <span className="text-xs text-slate-400">{reviewNote.length}/1000</span>
@@ -272,10 +272,10 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
 
       {showRequestAssignment && (
         <div>
-          <p className="text-xs font-medium text-slate-600 mb-1.5">Atama İsteği</p>
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-1.5">Atama İsteği</p>
           {requestSent ? (
-            <div className="px-3 py-2 rounded-lg bg-green-50 border border-green-200">
-              <p className="text-xs text-green-700">
+            <div className="px-3 py-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+              <p className="text-xs text-green-700 dark:text-green-400">
                 Talebiniz MANAGER onayına gönderildi.
               </p>
             </div>
@@ -288,7 +288,7 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
                 rows={2}
                 placeholder="Not ekleyin (opsiyonel)"
                 onChange={(e) => setRequestNote(e.target.value)}
-                className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 disabled:text-slate-400 resize-none mb-2"
+                className="w-full px-2 py-1.5 text-xs border border-slate-200 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400 resize-none mb-2"
               />
               <button
                 disabled={requestSubmitting}

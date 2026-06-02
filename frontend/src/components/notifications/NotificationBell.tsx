@@ -4,15 +4,15 @@ import { useNotifications } from '../../hooks/useNotifications'
 import type { NotificationSeverity } from '../../hooks/useNotifications'
 
 const SEVERITY_ROW: Record<NotificationSeverity, string> = {
-  critical: 'border-l-red-500 bg-red-50',
-  warning:  'border-l-amber-400 bg-amber-50',
-  info:     'border-l-blue-400 bg-blue-50',
+  critical: 'border-l-red-500 bg-red-50 dark:bg-red-900/20',
+  warning:  'border-l-amber-400 bg-amber-50 dark:bg-amber-900/20',
+  info:     'border-l-blue-400 bg-blue-50 dark:bg-blue-900/20',
 }
 
 const SEVERITY_TEXT: Record<NotificationSeverity, string> = {
-  critical: 'text-red-700',
-  warning:  'text-amber-700',
-  info:     'text-blue-700',
+  critical: 'text-red-700 dark:text-red-300',
+  warning:  'text-amber-700 dark:text-amber-300',
+  info:     'text-blue-700 dark:text-blue-300',
 }
 
 function BellIcon() {
@@ -42,7 +42,7 @@ function NotificationBell() {
     <div className="relative">
       <button
         onClick={() => setOpen((prev) => !prev)}
-        className="relative flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+        className="relative flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
         aria-label="Bildirimler"
       >
         <BellIcon />
@@ -59,11 +59,11 @@ function NotificationBell() {
             className="fixed inset-0 z-40"
             onClick={() => setOpen(false)}
           />
-          <div className="absolute right-0 top-10 z-50 w-72 bg-white rounded-xl border border-slate-200 shadow-lg overflow-hidden">
+          <div className="absolute right-0 top-10 z-50 w-72 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden">
 
             {/* Başlık + tümünü okundu butonu */}
-            <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+            <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex items-center justify-between">
+              <h3 className="text-xs font-semibold text-slate-600 dark:text-slate-300 uppercase tracking-wide">
                 Bildirimler
               </h3>
               {unseenCount > 0 && (
@@ -80,7 +80,7 @@ function NotificationBell() {
             {isLoading ? (
               <div className="px-4 py-3 space-y-2">
                 {[1, 2].map((i) => (
-                  <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
+                  <div key={i} className="h-10 bg-slate-100 dark:bg-slate-700 rounded animate-pulse" />
                 ))}
               </div>
             ) : items.length === 0 ? (

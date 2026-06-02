@@ -117,22 +117,22 @@ function TicketComments({ ticketId }: TicketCommentsProps) {
               key={c.id}
               className={`rounded-lg px-3 py-2.5 ${
                 c.type === 'INTERNAL'
-                  ? 'bg-amber-50 border border-amber-200'
-                  : 'bg-slate-50 border border-slate-200'
+                  ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800'
+                  : 'bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600'
               }`}
             >
               <div className="flex items-center justify-between gap-2 mb-1">
-                <span className="text-xs font-medium text-slate-700">{c.authorFullName}</span>
+                <span className="text-xs font-medium text-slate-700 dark:text-slate-200">{c.authorFullName}</span>
                 <div className="flex items-center gap-1.5 flex-shrink-0">
                   {c.type === 'INTERNAL' && (
-                    <span className="text-xs font-medium text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded">
+                    <span className="text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/30 px-1.5 py-0.5 rounded">
                       İç Not
                     </span>
                   )}
                   <span className="text-xs text-slate-400">{formatDateTime(c.createdAt)}</span>
                 </div>
               </div>
-              <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">
+              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                 {c.content}
               </p>
             </div>
@@ -152,8 +152,8 @@ function TicketComments({ ticketId }: TicketCommentsProps) {
               }}
               className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
                 commentType === 'EXTERNAL'
-                  ? 'bg-violet-100 text-violet-700 border border-violet-300'
-                  : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                  ? 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 border border-violet-300 dark:border-violet-700'
+                  : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600'
               }`}
             >
               Dış Yorum
@@ -167,8 +167,8 @@ function TicketComments({ ticketId }: TicketCommentsProps) {
               }}
               className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors ${
                 commentType === 'INTERNAL'
-                  ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                  : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                  ? 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-700'
+                  : 'bg-white dark:bg-slate-700 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600'
               }`}
             >
               İç Not
@@ -177,7 +177,7 @@ function TicketComments({ ticketId }: TicketCommentsProps) {
         )}
 
         {showInternalToggle && commentType === 'INTERNAL' && (
-          <p className="text-xs text-amber-600 mb-1.5">
+          <p className="text-xs text-amber-600 dark:text-amber-400 mb-1.5">
             ⚠ Bu yorum müşteri tarafından görülmez.
           </p>
         )}
@@ -192,10 +192,10 @@ function TicketComments({ ticketId }: TicketCommentsProps) {
             setContent(e.target.value)
             setFormError(null)
           }}
-          className={`w-full px-2 py-1.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 disabled:text-slate-400 resize-none ${
+          className={`w-full px-2 py-1.5 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 dark:disabled:bg-slate-600 disabled:text-slate-400 resize-none ${
             showInternalToggle && commentType === 'INTERNAL'
-              ? 'border-amber-200 bg-amber-50'
-              : 'border-slate-200 bg-white'
+              ? 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500'
+              : 'border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500'
           }`}
         />
 

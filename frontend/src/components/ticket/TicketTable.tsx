@@ -11,13 +11,13 @@ const STATUS_LABELS: Record<TicketStatus, string> = {
 }
 
 const STATUS_BADGE: Record<TicketStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-700',
-  ASSIGNED: 'bg-violet-100 text-violet-700',
-  IN_PROGRESS: 'bg-amber-100 text-amber-700',
-  WAITING_FOR_CUSTOMER: 'bg-orange-100 text-orange-700',
-  RESOLVED: 'bg-green-100 text-green-700',
-  CLOSED: 'bg-slate-100 text-slate-600',
-  CANCELLED: 'bg-red-100 text-red-600',
+  NEW: 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+  ASSIGNED: 'bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300',
+  IN_PROGRESS: 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+  WAITING_FOR_CUSTOMER: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300',
+  RESOLVED: 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300',
+  CLOSED: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
+  CANCELLED: 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400',
 }
 
 const PRIORITY_LABELS: Record<Priority, string> = {
@@ -29,11 +29,11 @@ const PRIORITY_LABELS: Record<Priority, string> = {
 }
 
 const PRIORITY_BADGE: Record<Priority, string> = {
-  BLOCKER: 'bg-red-200 text-red-800',
-  CRITICAL: 'bg-red-100 text-red-700',
-  HIGH: 'bg-orange-100 text-orange-700',
-  MEDIUM: 'bg-yellow-100 text-yellow-700',
-  LOW: 'bg-slate-100 text-slate-600',
+  BLOCKER: 'bg-red-200 dark:bg-red-900/40 text-red-800 dark:text-red-300',
+  CRITICAL: 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400',
+  HIGH: 'bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400',
+  MEDIUM: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400',
+  LOW: 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400',
 }
 
 function formatDate(iso: string): string {
@@ -49,7 +49,7 @@ function SkeletonRow() {
     <tr>
       {Array.from({ length: 7 }).map((_, i) => (
         <td key={i} className="px-4 py-3">
-          <div className="h-4 bg-slate-100 rounded animate-pulse" />
+          <div className="h-4 bg-slate-100 dark:bg-slate-700 rounded animate-pulse" />
         </td>
       ))}
     </tr>
@@ -68,31 +68,31 @@ function TicketTable({ tickets, isLoading, selectedId, onSelect }: TicketTablePr
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-100">
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+          <tr className="border-b border-slate-100 dark:border-slate-700">
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Numara
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Başlık
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Statü
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Öncelik
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Oluşturan
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Atanan
             </th>
-            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <th className="px-4 py-3 text-left text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
               Tarih
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-50">
+        <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
           {isLoading ? (
             <>
               <SkeletonRow />
@@ -113,13 +113,15 @@ function TicketTable({ tickets, isLoading, selectedId, onSelect }: TicketTablePr
                   key={ticket.id}
                   onClick={() => onSelect(ticket)}
                   className={`cursor-pointer transition-colors ${
-                    isSelected ? 'bg-violet-50' : 'hover:bg-slate-50'
+                    isSelected
+                      ? 'bg-violet-50 dark:bg-violet-900/20'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
                   }`}
                 >
-                  <td className="px-4 py-3 font-mono text-xs text-slate-600 whitespace-nowrap">
+                  <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
                     {ticket.ticketNumber}
                   </td>
-                  <td className="px-4 py-3 text-slate-800 max-w-xs truncate">
+                  <td className="px-4 py-3 text-slate-800 dark:text-slate-100 max-w-xs truncate">
                     {ticket.title}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
@@ -136,13 +138,13 @@ function TicketTable({ tickets, isLoading, selectedId, onSelect }: TicketTablePr
                       {PRIORITY_LABELS[ticket.priority]}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                     {ticket.createdByFullName}
                   </td>
-                  <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
+                  <td className="px-4 py-3 text-slate-600 dark:text-slate-300 whitespace-nowrap">
                     {ticket.assignedToFullName ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                  <td className="px-4 py-3 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                     {formatDate(ticket.createdAt)}
                   </td>
                 </tr>
