@@ -2,6 +2,7 @@ package com.ticketsystem;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * TicketSystem uygulamasının başlangıç noktası.
@@ -10,7 +11,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * - @Configuration       → Bu sınıfın bir konfigürasyon kaynağı olduğunu belirtir.
  * - @EnableAutoConfiguration → Spring Boot'un bağımlılıklara göre otomatik ayar yapmasını sağlar.
  * - @ComponentScan       → com.ticketsystem paketi altındaki tüm bileşenleri tarar.
+ *
+ * @EnableScheduling → @Scheduled ile işaretlenmiş metotların çalışmasını etkinleştirir.
  */
+@EnableScheduling
 @SpringBootApplication
 public class TicketSystemApplication {
 

@@ -6,6 +6,7 @@ import com.ticketsystem.entity.enums.Priority;
 import com.ticketsystem.entity.enums.TicketStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,4 +33,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     /** Belirtilen statü ve öncelik kombinasyonuna göre ticket'ları getirir. */
     List<Ticket> findByStatusAndPriority(TicketStatus status, Priority priority);
+
+    /** Verilen statü kümesi dışındaki (terminal olmayan) tüm ticket'ları getirir. */
+    List<Ticket> findByStatusNotIn(Collection<TicketStatus> terminalStatuses);
 }
