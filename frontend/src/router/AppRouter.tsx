@@ -6,6 +6,7 @@ import TicketListPage from '../pages/TicketListPage'
 import TicketCreatePage from '../pages/TicketCreatePage'
 import UserManagementPage from '../pages/UserManagementPage'
 import WorkloadPage from '../pages/WorkloadPage'
+import RequestsPage from '../pages/RequestsPage'
 import ProtectedRoute from './ProtectedRoute'
 
 function AppRouter() {
@@ -23,6 +24,7 @@ function AppRouter() {
             <Route element={<ProtectedRoute requiredRole="MANAGER" />}>
               <Route path="/users" element={<UserManagementPage />} />
               <Route path="/workload" element={<WorkloadPage />} />
+              <Route path="/requests" element={<RequestsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Route>

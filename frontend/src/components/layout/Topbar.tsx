@@ -15,6 +15,7 @@ const pageTitles: Record<string, string> = {
   '/tickets/create': 'Yeni Talep Oluştur',
   '/users': 'Kullanıcı Yönetimi',
   '/workload': 'Agent İş Yükü',
+  '/requests': 'İstekler',
 }
 
 function Topbar() {
