@@ -1,0 +1,57 @@
+services:
+
+  # ────────────────────────────────
+  # PostgreSQL veritabanı
+  # ────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB:       ticketsystemdb
+      POSTGRES_USER:     ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # $$VAR — Compose'un kendi interpolasyonunu atlatır;
+      # shell container içinde $POSTGRES_USER / $POSTGRES_DB'yi açar.
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    # Host'a port açılmıyor; yalnızca compose network üzerinden erişilebilir
+
+  # ────────────────────────────────
+  # Spring Boot backend
+  # ────────────────────────────────
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      # application.yaml'daki değişken adları korundu (DB_URL, DB_USERNAME, DB_PASSWORD, JWT_SECRET)
+      DB_URL:      jdbc:postgresql://postgres:5432/ticketsystemdb
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET:  ${JWT_SECRET}
+    volumes:
+      - uploads_data:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ────────────────────────────────
+  # React + Nginx frontend
+  # ────────────────────────────────
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+
+# ────────────────────────────────
+# Kalıcı volume tanımları
+# ────────────────────────────────
+volumes:
+  postgres_data:   # PostgreSQL veri dizini
+  uploads_data:    # Backend dosya yükleme dizini (/app/uploads)
