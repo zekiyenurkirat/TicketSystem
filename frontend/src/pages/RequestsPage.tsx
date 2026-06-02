@@ -9,6 +9,7 @@ import {
   approveRegistrationRequest,
   rejectRegistrationRequest,
 } from '../api/registrationRequest.api'
+import { usePendingRequestCounts } from '../context/PendingRequestCountsContext'
 import type { AssignmentRequestResponse } from '../types/assignmentRequest.types'
 import type { RegistrationRequestResponse } from '../types/registrationRequest.types'
 
@@ -36,6 +37,7 @@ function SkeletonRow({ cols }: { cols: number }) {
 
 function RequestsPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('agent')
+  const { updateAgentCount, updateRegCount } = usePendingRequestCounts()
 
   // ── Agent Talepleri state ──────────────────────────────────────────────────
   const [requests, setRequests] = useState<AssignmentRequestResponse[]>([])
@@ -57,6 +59,7 @@ function RequestsPage() {
     try {
       const data = await getAssignmentRequests('PENDING')
       setRequests(data)
+      updateAgentCount(data.length)
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Atama istekleri yüklenirken bir hata oluştu.'
@@ -104,6 +107,7 @@ function RequestsPage() {
     try {
       const data = await getRegistrationRequests('PENDING')
       setRegRequests(data)
+      updateRegCount(data.length)
     } catch (err) {
       setRegError(
         err instanceof Error ? err.message : 'Kayıt talepleri yüklenirken bir hata oluştu.'
@@ -114,8 +118,8 @@ function RequestsPage() {
   }
 
   useEffect(() => {
-    if (activeTab === 'registration') loadReg()
-  }, [activeTab])
+    loadReg()
+  }, [])
 
   async function handleRegApprove(id: number) {
     setRegProcessingId(id)
@@ -158,7 +162,7 @@ function RequestsPage() {
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
-          Agent Talepleri
+          Agent Talepleri ({requests.length})
         </button>
         <button
           onClick={() => setActiveTab('registration')}
@@ -168,7 +172,7 @@ function RequestsPage() {
               : 'border-transparent text-slate-500 hover:text-slate-700'
           }`}
         >
-          Kayıt Talepleri
+          Kayıt Talepleri ({regRequests.length})
         </button>
       </div>
 

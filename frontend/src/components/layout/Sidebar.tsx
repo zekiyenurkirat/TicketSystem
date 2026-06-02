@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import type { ReactNode } from 'react'
 import { useAuth } from '../../context/AuthContext'
+import { usePendingRequestCounts } from '../../context/PendingRequestCountsContext'
 import type { UserRole } from '../../types/auth.types'
 
 function HomeIcon() {
@@ -122,6 +123,7 @@ const navItems: NavItem[] = [
 function Sidebar() {
   const { role } = useAuth()
   const { pathname } = useLocation()
+  const { total: pendingTotal } = usePendingRequestCounts()
 
   const visibleItems = navItems.filter(
     (item) => !item.onlyRole || item.onlyRole === role
@@ -168,6 +170,11 @@ function Sidebar() {
             >
               {item.icon}
               {item.label}
+              {item.path === '/requests' && pendingTotal > 0 && (
+                <span className="ml-auto text-xs font-semibold px-1.5 py-0.5 rounded-full bg-violet-600 text-white leading-none">
+                  {pendingTotal > 99 ? '99+' : pendingTotal}
+                </span>
+              )}
             </Link>
           )
         })}
