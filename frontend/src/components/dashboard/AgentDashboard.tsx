@@ -163,7 +163,7 @@ function AgentDashboard({ userId }: AgentDashboardProps) {
         <StatCard
           title="SLA Yaklaşan"
           value={slaApproachingCount}
-          accent="bg-red-500"
+          accent="bg-amber-400"
           isLoading={isLoading}
           to="/tickets?queue=mine_sla_approaching"
         />

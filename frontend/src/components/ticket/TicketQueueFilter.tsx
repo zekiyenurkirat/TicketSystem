@@ -76,13 +76,13 @@ const AGENT_QUEUES: QueueDefinition[] = [
   { id: 'sla_approaching', label: 'SLA Yaklaşanlar', predicate: (t) => isSlaApproaching(t) },
   {
     id: 'mine_in_progress',
-    label: 'İşlemdeki',
+    label: 'Benim İşlemdekiler',
     predicate: (t, userId) =>
       userId !== null && t.assignedToId === userId && t.status === 'IN_PROGRESS',
   },
   {
     id: 'mine_sla_approaching',
-    label: 'SLA Yaklaşanlar',
+    label: 'Benim SLA Yaklaşanlarım',
     predicate: (t, userId) =>
       userId !== null && t.assignedToId === userId && isSlaApproaching(t),
   },

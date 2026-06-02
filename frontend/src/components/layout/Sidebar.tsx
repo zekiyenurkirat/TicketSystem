@@ -135,7 +135,7 @@ function Sidebar() {
 
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {visibleItems.map((item) => {
-          const isActive = pathname === item.path
+          const isActive = pathname === item.path || pathname.startsWith(`${item.path}/`)
           return (
             <Link
               key={item.label}

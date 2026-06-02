@@ -145,7 +145,7 @@ function CustomerDashboard({ userId }: CustomerDashboardProps) {
             bekliyor. Çözümlenen talepleri kapatmayı unutmayın.
           </p>
           <Link
-            to="/tickets"
+            to="/tickets?queue=resolved"
             className="ml-4 flex-shrink-0 text-xs font-medium text-amber-700 underline underline-offset-2"
           >
             Görüntüle →
