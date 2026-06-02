@@ -71,6 +71,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET,   "/api/v1/tickets/priority/*").hasAnyRole("AGENT", "MANAGER")
                 .requestMatchers(HttpMethod.GET,   "/api/v1/tickets/unassigned").hasAnyRole("AGENT", "MANAGER")
                 .requestMatchers(HttpMethod.GET,   "/api/v1/tickets/filter").hasAnyRole("AGENT", "MANAGER")
+                .requestMatchers("/api/v1/notifications/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
