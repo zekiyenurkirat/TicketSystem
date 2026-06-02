@@ -19,3 +19,6 @@ target/
 
 # Upload klasörü — gerçek dosyalar Git'e girmez
 uploads/
+
+# Log dosyaları — Log4j2 rolling file çıktısı
+logs/
