@@ -3,6 +3,9 @@ export type NotificationType =
   | 'SLA_APPROACHING'
   | 'UNASSIGNED_CRITICAL'
   | 'TICKET_ASSIGNED'
+  | 'ASSIGNMENT_REQUEST_CREATED'
+  | 'ASSIGNMENT_REQUEST_APPROVED'
+  | 'ASSIGNMENT_REQUEST_REJECTED'
 
 export interface NotificationResponse {
   id: number

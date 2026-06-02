@@ -4,6 +4,7 @@ import type { Priority, TicketResponse, TicketStatus } from '../../types/ticket.
 import type { UserResponse } from '../../types/user.types'
 import { assignTicket, changeTicketStatus, reviewTicketPriority } from '../../api/ticket.api'
 import { getActiveAgents } from '../../api/user.api'
+import { createAssignmentRequest } from '../../api/assignmentRequest.api'
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   NEW: 'Yeni',
@@ -63,9 +64,16 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
   const [reviewError, setReviewError] = useState<string | null>(null)
   const [reviewSubmitting, setReviewSubmitting] = useState(false)
 
+  const [requestNote, setRequestNote] = useState('')
+  const [requestSubmitting, setRequestSubmitting] = useState(false)
+  const [requestError, setRequestError] = useState<string | null>(null)
+  const [requestSent, setRequestSent] = useState(false)
+
   const showAssign =
     role === 'MANAGER' && (ticket.status === 'NEW' || ticket.status === 'ASSIGNED')
   const showReview = role === 'AGENT' || role === 'MANAGER'
+  const showRequestAssignment =
+    role === 'AGENT' && ticket.status === 'NEW' && ticket.assignedToId === null
   const availableTransitions = getAvailableTransitions(ticket.status, role)
   const showStatus = availableTransitions.length > 0
 
@@ -80,7 +88,7 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
       .finally(() => setAgentsLoading(false))
   }, [])
 
-  if (!showStatus && !showAssign && !showReview) return null
+  if (!showStatus && !showAssign && !showReview && !showRequestAssignment) return null
 
   async function handleStatusSubmit() {
     if (newStatus === null) return
@@ -109,6 +117,24 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
       setAssignError(err instanceof Error ? err.message : 'Atama yapılırken bir hata oluştu.')
     } finally {
       setAssignSubmitting(false)
+    }
+  }
+
+  async function handleRequestAssignment() {
+    setRequestSubmitting(true)
+    setRequestError(null)
+    try {
+      await createAssignmentRequest({
+        ticketId: ticket.id,
+        note: requestNote.trim() || undefined,
+      })
+      setRequestSent(true)
+    } catch (err) {
+      setRequestError(
+        err instanceof Error ? err.message : 'İstek gönderilirken bir hata oluştu.'
+      )
+    } finally {
+      setRequestSubmitting(false)
     }
   }
 
@@ -241,6 +267,41 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
             </button>
           </div>
           {reviewError && <p className="mt-1 text-xs text-red-600">{reviewError}</p>}
+        </div>
+      )}
+
+      {showRequestAssignment && (
+        <div>
+          <p className="text-xs font-medium text-slate-600 mb-1.5">Atama İsteği</p>
+          {requestSent ? (
+            <div className="px-3 py-2 rounded-lg bg-green-50 border border-green-200">
+              <p className="text-xs text-green-700">
+                Talebiniz MANAGER onayına gönderildi.
+              </p>
+            </div>
+          ) : (
+            <>
+              <textarea
+                value={requestNote}
+                disabled={requestSubmitting}
+                maxLength={500}
+                rows={2}
+                placeholder="Not ekleyin (opsiyonel)"
+                onChange={(e) => setRequestNote(e.target.value)}
+                className="w-full px-2 py-1.5 text-xs border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-400 disabled:bg-slate-50 disabled:text-slate-400 resize-none mb-2"
+              />
+              <button
+                disabled={requestSubmitting}
+                onClick={handleRequestAssignment}
+                className="w-full px-3 py-1.5 text-xs font-medium text-white bg-violet-600 hover:bg-violet-700 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {requestSubmitting ? '...' : 'Bu talebi almak istiyorum'}
+              </button>
+              {requestError && (
+                <p className="mt-1 text-xs text-red-600">{requestError}</p>
+              )}
+            </>
+          )}
         </div>
       )}
     </div>

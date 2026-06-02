@@ -26,7 +26,11 @@ function resolveSeverity(type: NotificationType): NotificationSeverity {
     case 'SLA_APPROACHING':
       return 'warning'
     case 'TICKET_ASSIGNED':
+    case 'ASSIGNMENT_REQUEST_CREATED':
+    case 'ASSIGNMENT_REQUEST_APPROVED':
       return 'info'
+    case 'ASSIGNMENT_REQUEST_REJECTED':
+      return 'warning'
     default:
       return 'info'
   }
@@ -35,18 +39,21 @@ function resolveSeverity(type: NotificationType): NotificationSeverity {
 function resolveLink(type: NotificationType, role: UserRole | null): string {
   if (role === 'MANAGER') {
     switch (type) {
-      case 'SLA_BREACHED':        return '/tickets?queue=overdue'
-      case 'SLA_APPROACHING':     return '/tickets?queue=sla_approaching'
-      case 'UNASSIGNED_CRITICAL': return '/tickets?queue=unassigned_critical'
-      default:                    return '/tickets'
+      case 'SLA_BREACHED':               return '/tickets?queue=overdue'
+      case 'SLA_APPROACHING':            return '/tickets?queue=sla_approaching'
+      case 'UNASSIGNED_CRITICAL':        return '/tickets?queue=unassigned_critical'
+      case 'ASSIGNMENT_REQUEST_CREATED': return '/requests'
+      default:                           return '/tickets'
     }
   }
   if (role === 'AGENT') {
     switch (type) {
-      case 'SLA_BREACHED':    return '/tickets?queue=mine_overdue'
-      case 'SLA_APPROACHING': return '/tickets?queue=mine_sla_approaching'
-      case 'TICKET_ASSIGNED': return '/tickets?queue=mine'
-      default:                return '/tickets'
+      case 'SLA_BREACHED':                return '/tickets?queue=mine_overdue'
+      case 'SLA_APPROACHING':             return '/tickets?queue=mine_sla_approaching'
+      case 'TICKET_ASSIGNED':
+      case 'ASSIGNMENT_REQUEST_APPROVED': return '/tickets?queue=mine'
+      case 'ASSIGNMENT_REQUEST_REJECTED': return '/tickets'
+      default:                            return '/tickets'
     }
   }
   // CUSTOMER şu an backend'den bildirim almıyor; fallback güvenli.

@@ -3,7 +3,19 @@ import type { ApiResponse } from '../types/api.types'
 import type {
   AssignmentRequestStatus,
   AssignmentRequestResponse,
+  CreateAssignmentRequestRequest,
 } from '../types/assignmentRequest.types'
+
+/** Oturum açmış agent adına yeni atama isteği oluşturur. */
+export async function createAssignmentRequest(
+  request: CreateAssignmentRequestRequest
+): Promise<AssignmentRequestResponse> {
+  const response = await client.post<ApiResponse<AssignmentRequestResponse>>(
+    '/assignment-requests',
+    request
+  )
+  return response.data.data
+}
 
 /** Belirtilen statüdeki atama isteklerini getirir. Status verilmezse PENDING döner. */
 export async function getAssignmentRequests(
