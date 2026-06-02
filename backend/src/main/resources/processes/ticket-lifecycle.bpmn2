@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Faz 14a — spike: Minimal BPMN 2.0 process tanımı.
+  Amaç: KieContainer'ın bu dosyayı yükleyip ProcessInstance
+  başlatabildiğini kanıtlamak.
+
+  Faz 14b'de bu process şu lifecycle adımlarıyla genişletilecek:
+    NEW → ASSIGNED → IN_PROGRESS → WAITING_FOR_CUSTOMER
+        → RESOLVED → CLOSED / CANCELLED
+-->
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL"
+             xmlns:tns="http://www.jboss.org/drools"
+             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             targetNamespace="http://www.jboss.org/drools"
+             id="Definitions_TicketLifecycle">
+
+  <process id="ticket-lifecycle"
+           name="Ticket Yaşam Döngüsü"
+           isExecutable="true"
+           processType="Private">
+
+    <startEvent id="StartEvent_ticketCreated" name="Ticket Oluşturuldu"/>
+
+    <sequenceFlow id="Flow_1"
+                  sourceRef="StartEvent_ticketCreated"
+                  targetRef="EndEvent_ticketClosed"/>
+
+    <endEvent id="EndEvent_ticketClosed" name="Ticket Tamamlandı"/>
+
+  </process>
+
+</definitions>
