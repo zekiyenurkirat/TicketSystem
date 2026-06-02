@@ -1,11 +1,189 @@
+import { useState } from 'react'
+import { createUser } from '../api/user.api'
+import type { UserRole } from '../types/auth.types'
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  CUSTOMER: 'Müşteri',
+  AGENT: 'Destek Personeli',
+  MANAGER: 'Yönetici',
+}
+
+const ROLES: UserRole[] = ['CUSTOMER', 'AGENT', 'MANAGER']
+
+const EMPTY_FORM = {
+  firstName: '',
+  lastName: '',
+  email: '',
+  password: '',
+  passwordConfirm: '',
+  role: 'CUSTOMER' as UserRole,
+}
+
 function UserManagementPage() {
+  const [form, setForm] = useState(EMPTY_FORM)
+  const [loading, setLoading] = useState(false)
+  const [successMsg, setSuccessMsg] = useState<string | null>(null)
+  const [errorMsg, setErrorMsg] = useState<string | null>(null)
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
+    const { name, value } = e.target
+    setForm((prev) => ({ ...prev, [name]: value }))
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSuccessMsg(null)
+    setErrorMsg(null)
+
+    if (form.password !== form.passwordConfirm) {
+      setErrorMsg('Şifreler eşleşmiyor.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      await createUser({
+        firstName: form.firstName,
+        lastName: form.lastName,
+        email: form.email,
+        password: form.password,
+        role: form.role,
+      })
+      setForm(EMPTY_FORM)
+      setSuccessMsg('Kullanıcı başarıyla oluşturuldu.')
+      setTimeout(() => setSuccessMsg(null), 4000)
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : 'Beklenmeyen bir hata oluştu.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
       <div className="px-6 py-4 border-b border-slate-200">
-        <h2 className="text-sm font-semibold text-slate-700">Kullanıcı Yönetimi</h2>
+        <h2 className="text-sm font-semibold text-slate-700">Kullanıcı Oluştur</h2>
       </div>
-      <div className="px-6 py-12 text-center">
-        <p className="text-sm text-slate-400">Kullanıcı listesi burada olacak</p>
+
+      <div className="px-6 py-6 max-w-md">
+        {successMsg && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-green-50 border border-green-200 text-green-700 text-sm">
+            {successMsg}
+          </div>
+        )}
+        {errorMsg && (
+          <div className="mb-4 px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+            {errorMsg}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="firstName">
+                Ad
+              </label>
+              <input
+                id="firstName"
+                name="firstName"
+                type="text"
+                required
+                value={form.firstName}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="lastName">
+                Soyad
+              </label>
+              <input
+                id="lastName"
+                name="lastName"
+                type="text"
+                required
+                value={form.lastName}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="email">
+              E-posta
+            </label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              value={form.email}
+              onChange={handleChange}
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="role">
+              Rol
+            </label>
+            <select
+              id="role"
+              name="role"
+              required
+              value={form.role}
+              onChange={handleChange}
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500 bg-white"
+            >
+              {ROLES.map((r) => (
+                <option key={r} value={r}>
+                  {ROLE_LABELS[r]}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="password">
+              Şifre
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              required
+              minLength={8}
+              value={form.password}
+              onChange={handleChange}
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-slate-600 mb-1" htmlFor="passwordConfirm">
+              Şifre Tekrar
+            </label>
+            <input
+              id="passwordConfirm"
+              name="passwordConfirm"
+              type="password"
+              required
+              minLength={8}
+              value={form.passwordConfirm}
+              onChange={handleChange}
+              className="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-violet-500"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 px-4 text-sm font-medium text-white bg-violet-600 hover:bg-violet-700 disabled:bg-violet-400 disabled:cursor-not-allowed rounded-lg transition-colors"
+          >
+            {loading ? 'Oluşturuluyor...' : 'Oluştur'}
+          </button>
+        </form>
       </div>
     </div>
   )

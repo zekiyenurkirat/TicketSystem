@@ -10,3 +10,11 @@ export interface UserResponse {
   createdAt: string
   updatedAt: string
 }
+
+export interface CreateUserRequest {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  role: UserRole
+}
