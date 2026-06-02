@@ -14,13 +14,13 @@ const STATUS_LABELS: Record<TicketStatus, string> = {
 }
 
 const STATUS_BADGE: Record<TicketStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-700',
-  ASSIGNED: 'bg-violet-100 text-violet-700',
-  IN_PROGRESS: 'bg-amber-100 text-amber-700',
-  WAITING_FOR_CUSTOMER: 'bg-orange-100 text-orange-700',
-  RESOLVED: 'bg-green-100 text-green-700',
-  CLOSED: 'bg-slate-100 text-slate-600',
-  CANCELLED: 'bg-red-100 text-red-600',
+  NEW: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  ASSIGNED: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300',
+  IN_PROGRESS: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+  WAITING_FOR_CUSTOMER: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  RESOLVED: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  CLOSED: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
+  CANCELLED: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
 }
 
 function formatDate(iso: string): string {
@@ -42,18 +42,18 @@ type StatCardProps = {
 function StatCard({ title, value, accent, isLoading, to }: StatCardProps) {
   const inner = (
     <div
-      className={`bg-white rounded-xl border border-slate-200 p-5 shadow-sm ${
+      className={`bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-slate-800 dark:border-slate-700 ${
         to ? 'hover:border-violet-300 hover:shadow-md transition-all cursor-pointer' : ''
       }`}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-slate-600">{title}</span>
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</span>
         <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${accent}`} />
       </div>
       {isLoading ? (
-        <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
+        <div className="h-8 w-16 bg-slate-100 rounded animate-pulse dark:bg-slate-700" />
       ) : (
-        <p className="text-3xl font-bold text-slate-800">{value}</p>
+        <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
       )}
     </div>
   )
@@ -123,8 +123,8 @@ function CustomerDashboard({ userId }: CustomerDashboardProps) {
 
   if (userId === null) {
     return (
-      <div className="px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 max-w-md">
-        <p className="text-sm text-amber-700">
+      <div className="px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 max-w-md dark:bg-amber-900/20 dark:border-amber-800">
+        <p className="text-sm text-amber-700 dark:text-amber-400">
           Kullanıcı kimliği alınamadı. Lütfen çıkış yapıp tekrar giriş yapın.
         </p>
       </div>
@@ -134,19 +134,19 @@ function CustomerDashboard({ userId }: CustomerDashboardProps) {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-slate-800">Hoş geldiniz</h2>
-        <p className="text-sm text-slate-500 mt-1">Taleplerinize genel bakış</p>
+        <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Hoş geldiniz</h2>
+        <p className="text-sm text-slate-500 mt-1 dark:text-slate-400">Taleplerinize genel bakış</p>
       </div>
 
       {!isLoading && resolvedPending.length > 0 && (
-        <div className="mb-5 flex items-center justify-between px-4 py-3 rounded-lg bg-amber-50 border border-amber-200">
-          <p className="text-sm text-amber-700">
+        <div className="mb-5 flex items-center justify-between px-4 py-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800">
+          <p className="text-sm text-amber-700 dark:text-amber-400">
             <span className="font-semibold">{resolvedPending.length}</span> talebin onayınızı
             bekliyor. Çözümlenen talepleri kapatmayı unutmayın.
           </p>
           <Link
             to="/tickets?queue=resolved"
-            className="ml-4 flex-shrink-0 text-xs font-medium text-amber-700 underline underline-offset-2"
+            className="ml-4 flex-shrink-0 text-xs font-medium text-amber-700 underline underline-offset-2 dark:text-amber-400"
           >
             Görüntüle →
           </Link>
@@ -154,8 +154,8 @@ function CustomerDashboard({ userId }: CustomerDashboardProps) {
       )}
 
       {error && (
-        <div className="mb-5 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="mb-5 px-4 py-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800">
+          <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -183,12 +183,12 @@ function CustomerDashboard({ userId }: CustomerDashboardProps) {
         />
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">Son Talepler</h3>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-slate-800 dark:border-slate-700">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Son Talepler</h3>
           <Link
             to="/tickets"
-            className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors"
+            className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors dark:text-violet-400 dark:hover:text-violet-300"
           >
             Tümünü görüntüle →
           </Link>
@@ -197,7 +197,7 @@ function CustomerDashboard({ userId }: CustomerDashboardProps) {
         {isLoading ? (
           <div className="px-6 py-4 space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-8 bg-slate-100 rounded animate-pulse" />
+              <div key={i} className="h-8 bg-slate-100 rounded animate-pulse dark:bg-slate-700" />
             ))}
           </div>
         ) : recentTickets.length === 0 ? (
@@ -208,28 +208,28 @@ function CustomerDashboard({ userId }: CustomerDashboardProps) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                <tr className="border-b border-slate-100 dark:border-slate-700">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Numara
                   </th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Başlık
                   </th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Statü
                   </th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Tarih
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                 {recentTickets.map((ticket) => (
-                  <tr key={ticket.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">
+                  <tr key={ticket.id} className="hover:bg-slate-50 transition-colors dark:hover:bg-slate-700/50">
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500 whitespace-nowrap dark:text-slate-400">
                       {ticket.ticketNumber}
                     </td>
-                    <td className="px-5 py-3 text-slate-700 max-w-xs truncate">{ticket.title}</td>
+                    <td className="px-5 py-3 text-slate-700 max-w-xs truncate dark:text-slate-200">{ticket.title}</td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[ticket.status]}`}
@@ -237,7 +237,7 @@ function CustomerDashboard({ userId }: CustomerDashboardProps) {
                         {STATUS_LABELS[ticket.status]}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-slate-500 whitespace-nowrap">
+                    <td className="px-5 py-3 text-slate-500 whitespace-nowrap dark:text-slate-400">
                       {formatDate(ticket.createdAt)}
                     </td>
                   </tr>

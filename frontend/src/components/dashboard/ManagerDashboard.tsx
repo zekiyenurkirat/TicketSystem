@@ -17,13 +17,13 @@ const STATUS_LABELS: Record<TicketStatus, string> = {
 }
 
 const STATUS_BADGE: Record<TicketStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-700',
-  ASSIGNED: 'bg-violet-100 text-violet-700',
-  IN_PROGRESS: 'bg-amber-100 text-amber-700',
-  WAITING_FOR_CUSTOMER: 'bg-orange-100 text-orange-700',
-  RESOLVED: 'bg-green-100 text-green-700',
-  CLOSED: 'bg-slate-100 text-slate-600',
-  CANCELLED: 'bg-red-100 text-red-600',
+  NEW: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  ASSIGNED: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300',
+  IN_PROGRESS: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+  WAITING_FOR_CUSTOMER: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  RESOLVED: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  CLOSED: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
+  CANCELLED: 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400',
 }
 
 const PRIORITY_LABELS: Record<Priority, string> = {
@@ -35,11 +35,11 @@ const PRIORITY_LABELS: Record<Priority, string> = {
 }
 
 const PRIORITY_BADGE: Record<Priority, string> = {
-  BLOCKER: 'bg-red-200 text-red-800',
-  CRITICAL: 'bg-red-100 text-red-700',
-  HIGH: 'bg-orange-100 text-orange-700',
-  MEDIUM: 'bg-yellow-100 text-yellow-700',
-  LOW: 'bg-slate-100 text-slate-600',
+  BLOCKER: 'bg-red-200 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+  CRITICAL: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+  HIGH: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
+  MEDIUM: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300',
+  LOW: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400',
 }
 
 const PRIORITY_CONFIG: { key: Priority; label: string; barColor: string }[] = [
@@ -69,18 +69,18 @@ type StatCardProps = {
 function StatCard({ title, value, accent, isLoading, to }: StatCardProps) {
   const inner = (
     <div
-      className={`bg-white rounded-xl border border-slate-200 p-5 shadow-sm ${
+      className={`bg-white rounded-xl border border-slate-200 p-5 shadow-sm dark:bg-slate-800 dark:border-slate-700 ${
         to ? 'hover:border-violet-300 hover:shadow-md transition-all cursor-pointer' : ''
       }`}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-slate-600">{title}</span>
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{title}</span>
         <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${accent}`} />
       </div>
       {isLoading ? (
-        <div className="h-8 w-16 bg-slate-100 rounded animate-pulse" />
+        <div className="h-8 w-16 bg-slate-100 rounded animate-pulse dark:bg-slate-700" />
       ) : (
-        <p className="text-3xl font-bold text-slate-800">{value}</p>
+        <p className="text-3xl font-bold text-slate-800 dark:text-slate-100">{value}</p>
       )}
     </div>
   )
@@ -175,19 +175,19 @@ function ManagerDashboard() {
   return (
     <>
       <div className="mb-6">
-        <h2 className="text-xl font-semibold text-slate-800">Hoş geldiniz</h2>
-        <p className="text-sm text-slate-500 mt-1">Sistem geneli talep durumuna genel bakış</p>
+        <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">Hoş geldiniz</h2>
+        <p className="text-sm text-slate-500 mt-1 dark:text-slate-400">Sistem geneli talep durumuna genel bakış</p>
       </div>
 
       {!isLoading && criticalUnassigned.length > 0 && (
-        <div className="mb-5 flex items-center justify-between px-4 py-3 rounded-lg bg-red-50 border border-red-200">
-          <p className="text-sm text-red-700">
+        <div className="mb-5 flex items-center justify-between px-4 py-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800">
+          <p className="text-sm text-red-700 dark:text-red-400">
             <span className="font-semibold">{criticalUnassigned.length}</span> adet atanmamış
             Kritik / Blocker talep var. Acilen atama yapılması gerekiyor.
           </p>
           <Link
             to="/tickets?queue=unassigned_critical"
-            className="ml-4 flex-shrink-0 text-xs font-medium text-red-700 underline underline-offset-2"
+            className="ml-4 flex-shrink-0 text-xs font-medium text-red-700 underline underline-offset-2 dark:text-red-400"
           >
             Görüntüle →
           </Link>
@@ -195,8 +195,8 @@ function ManagerDashboard() {
       )}
 
       {error && (
-        <div className="mb-5 px-4 py-3 rounded-lg bg-red-50 border border-red-200">
-          <p className="text-sm text-red-700">{error}</p>
+        <div className="mb-5 px-4 py-3 rounded-lg bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800">
+          <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -232,12 +232,12 @@ function ManagerDashboard() {
       </div>
 
       <div className="grid grid-cols-2 gap-4 mb-6">
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
-          <h3 className="text-sm font-semibold text-slate-700 mb-4">Öncelik Dağılımı</h3>
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 dark:bg-slate-800 dark:border-slate-700">
+          <h3 className="text-sm font-semibold text-slate-700 mb-4 dark:text-slate-200">Öncelik Dağılımı</h3>
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <div key={i} className="h-5 bg-slate-100 rounded animate-pulse" />
+                <div key={i} className="h-5 bg-slate-100 rounded animate-pulse dark:bg-slate-700" />
               ))}
             </div>
           ) : activeTickets.length === 0 ? (
@@ -252,14 +252,14 @@ function ManagerDashboard() {
                     : 0
                 return (
                   <div key={key} className="flex items-center gap-3">
-                    <span className="text-xs text-slate-600 w-14 flex-shrink-0">{label}</span>
-                    <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden">
+                    <span className="text-xs text-slate-600 w-14 flex-shrink-0 dark:text-slate-300">{label}</span>
+                    <div className="flex-1 bg-slate-100 rounded-full h-2 overflow-hidden dark:bg-slate-700">
                       <div
                         className={`h-2 rounded-full transition-all ${barColor}`}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
-                    <span className="text-xs font-semibold text-slate-700 w-5 text-right flex-shrink-0">
+                    <span className="text-xs font-semibold text-slate-700 w-5 text-right flex-shrink-0 dark:text-slate-200">
                       {count}
                     </span>
                   </div>
@@ -269,12 +269,12 @@ function ManagerDashboard() {
           )}
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5 dark:bg-slate-800 dark:border-slate-700">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold text-slate-700">Agent İş Yükü</h3>
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Agent İş Yükü</h3>
             <Link
               to="/workload"
-              className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors"
+              className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors dark:text-violet-400 dark:hover:text-violet-300"
             >
               Detaylı görünüm →
             </Link>
@@ -282,7 +282,7 @@ function ManagerDashboard() {
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-8 bg-slate-100 rounded animate-pulse" />
+                <div key={i} className="h-8 bg-slate-100 rounded animate-pulse dark:bg-slate-700" />
               ))}
             </div>
           ) : agentWorkload.length === 0 ? (
@@ -292,14 +292,14 @@ function ManagerDashboard() {
               {agentWorkload.map((item) => (
                 <div
                   key={item.id}
-                  className="flex items-center justify-between py-2 border-b border-slate-50 last:border-b-0"
+                  className="flex items-center justify-between py-2 border-b border-slate-50 last:border-b-0 dark:border-slate-700"
                 >
-                  <span className="text-sm text-slate-700 truncate">{item.fullName}</span>
+                  <span className="text-sm text-slate-700 truncate dark:text-slate-200">{item.fullName}</span>
                   <span
                     className={`ml-3 flex-shrink-0 inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full text-xs font-semibold ${
                       item.activeCount > 0
-                        ? 'bg-violet-100 text-violet-700'
-                        : 'bg-slate-100 text-slate-500'
+                        ? 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300'
+                        : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
                     }`}
                   >
                     {item.activeCount}
@@ -311,12 +311,12 @@ function ManagerDashboard() {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
-        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700">{recentListTitle}</h3>
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm dark:bg-slate-800 dark:border-slate-700">
+        <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">{recentListTitle}</h3>
           <Link
             to="/tickets"
-            className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors"
+            className="text-xs font-medium text-violet-600 hover:text-violet-800 transition-colors dark:text-violet-400 dark:hover:text-violet-300"
           >
             Tümünü görüntüle →
           </Link>
@@ -325,7 +325,7 @@ function ManagerDashboard() {
         {isLoading ? (
           <div className="px-6 py-4 space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-8 bg-slate-100 rounded animate-pulse" />
+              <div key={i} className="h-8 bg-slate-100 rounded animate-pulse dark:bg-slate-700" />
             ))}
           </div>
         ) : recentTickets.length === 0 ? (
@@ -336,31 +336,31 @@ function ManagerDashboard() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                <tr className="border-b border-slate-100 dark:border-slate-700">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Numara
                   </th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Başlık
                   </th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Statü
                   </th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Öncelik
                   </th>
-                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide">
+                  <th className="px-5 py-2.5 text-left text-xs font-medium text-slate-500 uppercase tracking-wide dark:text-slate-400">
                     Tarih
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
                 {recentTickets.map((ticket) => (
-                  <tr key={ticket.id} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-5 py-3 font-mono text-xs text-slate-500 whitespace-nowrap">
+                  <tr key={ticket.id} className="hover:bg-slate-50 transition-colors dark:hover:bg-slate-700/50">
+                    <td className="px-5 py-3 font-mono text-xs text-slate-500 whitespace-nowrap dark:text-slate-400">
                       {ticket.ticketNumber}
                     </td>
-                    <td className="px-5 py-3 text-slate-700 max-w-xs truncate">{ticket.title}</td>
+                    <td className="px-5 py-3 text-slate-700 max-w-xs truncate dark:text-slate-200">{ticket.title}</td>
                     <td className="px-5 py-3 whitespace-nowrap">
                       <span
                         className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[ticket.status]}`}
@@ -375,7 +375,7 @@ function ManagerDashboard() {
                         {PRIORITY_LABELS[ticket.priority]}
                       </span>
                     </td>
-                    <td className="px-5 py-3 text-slate-500 whitespace-nowrap">
+                    <td className="px-5 py-3 text-slate-500 whitespace-nowrap dark:text-slate-400">
                       {formatDate(ticket.createdAt)}
                     </td>
                   </tr>
