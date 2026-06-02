@@ -1,3 +1,5 @@
+export type RegistrationRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
 export interface CreateRegistrationRequestRequest {
   firstName: string
   lastName: string

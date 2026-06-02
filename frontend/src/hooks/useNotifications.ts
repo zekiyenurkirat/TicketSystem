@@ -28,8 +28,11 @@ function resolveSeverity(type: NotificationType): NotificationSeverity {
     case 'TICKET_ASSIGNED':
     case 'ASSIGNMENT_REQUEST_CREATED':
     case 'ASSIGNMENT_REQUEST_APPROVED':
+    case 'REGISTRATION_REQUEST_CREATED':
+    case 'REGISTRATION_REQUEST_APPROVED':
       return 'info'
     case 'ASSIGNMENT_REQUEST_REJECTED':
+    case 'REGISTRATION_REQUEST_REJECTED':
       return 'warning'
     default:
       return 'info'
@@ -42,8 +45,9 @@ function resolveLink(type: NotificationType, role: UserRole | null): string {
       case 'SLA_BREACHED':               return '/tickets?queue=overdue'
       case 'SLA_APPROACHING':            return '/tickets?queue=sla_approaching'
       case 'UNASSIGNED_CRITICAL':        return '/tickets?queue=unassigned_critical'
-      case 'ASSIGNMENT_REQUEST_CREATED': return '/requests'
-      default:                           return '/tickets'
+      case 'ASSIGNMENT_REQUEST_CREATED':    return '/requests'
+      case 'REGISTRATION_REQUEST_CREATED': return '/requests'
+      default:                             return '/tickets'
     }
   }
   if (role === 'AGENT') {
