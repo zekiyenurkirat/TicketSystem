@@ -1,6 +1,7 @@
 package com.ticketsystem.security;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
@@ -50,10 +51,15 @@ public class JwtService {
         return claimsResolver.apply(extractAllClaims(token));
     }
 
-    /** Token'ın verilen kullanıcıya ait ve geçerli olup olmadığını doğrular. */
+    /** Token'ın verilen kullanıcıya ait ve geçerli olup olmadığını doğrular.
+     *  Süresi dolmuş, bozuk veya imzası geçersiz token için false döner. */
     public boolean validateToken(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        try {
+            String username = extractUsername(token);
+            return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        } catch (JwtException | IllegalArgumentException e) {
+            return false;
+        }
     }
 
     private Claims extractAllClaims(String token) {

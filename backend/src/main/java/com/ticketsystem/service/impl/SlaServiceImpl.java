@@ -5,6 +5,7 @@ import com.ticketsystem.entity.SlaRule;
 import com.ticketsystem.entity.enums.Priority;
 import com.ticketsystem.repository.SlaRuleRepository;
 import com.ticketsystem.service.SlaService;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +22,7 @@ public class SlaServiceImpl implements SlaService {
     }
 
     @Override
+    @Cacheable(value = "slaRules", key = "#priority")
     @Transactional(readOnly = true)
     public SlaRule findActiveSlaRule(Priority priority) {
         return slaRuleRepository.findByPriorityAndActiveTrue(priority)

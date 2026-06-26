@@ -2,12 +2,14 @@ package com.ticketsystem;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Spring Boot uygulama context'inin hatasız yüklendiğini doğrular.
  * Bu test, Faz 1'de iskeleton'ın doğru kurulduğunu kanıtlar.
  */
 @SpringBootTest
+@ActiveProfiles("test")
 class TicketSystemApplicationTests {
 
     @Test
