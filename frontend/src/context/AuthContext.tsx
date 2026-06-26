@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
-import { login as loginApi } from '../api/auth.api'
+import { login as loginApi, verifyTotp as verifyTotpApi } from '../api/auth.api'
 import { getUserByEmail } from '../api/user.api'
 import { TOKEN_KEY } from '../api/client'
 import type { LoginRequest, UserRole } from '../types/auth.types'
@@ -14,22 +14,33 @@ type AuthContextValue = {
   userId: number | null
   isLoading: boolean
   isAuthenticated: boolean
-  login: (request: LoginRequest) => Promise<void>
+  /** true ise TOTP ekranına geçilir. */
+  requiresTwoFactor: boolean
+  /** 2FA beklenen kullanıcının emaili — TOTP ekranında gösterim için. */
+  pendingEmail: string | null
+  login: (request: LoginRequest) => Promise<{ requiresTwoFactor: boolean }>
+  /** Yalnızca 6 haneli TOTP kodunu alır; challengeToken context içinde gizlidir. */
+  verifyTotp: (code: string) => Promise<void>
   logout: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null)
-  const [email, setEmail] = useState<string | null>(null)
-  const [role, setRole] = useState<UserRole | null>(null)
+  const [token, setToken]   = useState<string | null>(null)
+  const [email, setEmail]   = useState<string | null>(null)
+  const [role, setRole]     = useState<UserRole | null>(null)
   const [userId, setUserId] = useState<number | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
+  // 2FA geçiş state'i — localStorage'a yazılmaz; challenge token 5 dk geçerli
+  const [requiresTwoFactor, setRequiresTwoFactor]         = useState(false)
+  const [pendingEmail, setPendingEmail]                   = useState<string | null>(null)
+  const [pendingChallengeToken, setPendingChallengeToken] = useState<string | null>(null)
+
   useEffect(() => {
     const storedToken = localStorage.getItem(TOKEN_KEY)
-    const storedUser = localStorage.getItem(USER_KEY)
+    const storedUser  = localStorage.getItem(USER_KEY)
 
     if (storedToken && storedUser) {
       try {
@@ -47,15 +58,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(false)
   }, [])
 
-  async function login(request: LoginRequest): Promise<void> {
+  async function login(request: LoginRequest): Promise<{ requiresTwoFactor: boolean }> {
     const authResponse = await loginApi(request)
 
+    if (authResponse.requiresTwoFactor) {
+      setPendingEmail(authResponse.email)
+      setPendingChallengeToken(authResponse.challengeToken)
+      setRequiresTwoFactor(true)
+      return { requiresTwoFactor: true }
+    }
+
+    await applyFullAuth(authResponse.token!, authResponse.email, authResponse.role!)
+    return { requiresTwoFactor: false }
+  }
+
+  async function verifyTotp(code: string): Promise<void> {
+    if (!pendingChallengeToken) {
+      throw new Error('2FA oturumu bulunamadı. Lütfen tekrar giriş yapın.')
+    }
+    const authResponse = await verifyTotpApi({ challengeToken: pendingChallengeToken, code })
+    setRequiresTwoFactor(false)
+    setPendingEmail(null)
+    setPendingChallengeToken(null)
+    await applyFullAuth(authResponse.token!, authResponse.email, authResponse.role!)
+  }
+
+  async function applyFullAuth(tok: string, userEmail: string, userRole: UserRole): Promise<void> {
     // Token interceptor'ın getUserByEmail isteğinde okuyabilmesi için önce localStorage'a yazılır
-    localStorage.setItem(TOKEN_KEY, authResponse.token)
+    localStorage.setItem(TOKEN_KEY, tok)
 
     let fetchedUserId: number | null = null
     try {
-      const userProfile = await getUserByEmail(authResponse.email)
+      const userProfile = await getUserByEmail(userEmail)
       fetchedUserId = userProfile.id
     } catch {
       localStorage.removeItem(TOKEN_KEY)
@@ -64,12 +98,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     localStorage.setItem(
       USER_KEY,
-      JSON.stringify({ email: authResponse.email, role: authResponse.role, userId: fetchedUserId })
+      JSON.stringify({ email: userEmail, role: userRole, userId: fetchedUserId })
     )
 
-    setToken(authResponse.token)
-    setEmail(authResponse.email)
-    setRole(authResponse.role)
+    setToken(tok)
+    setEmail(userEmail)
+    setRole(userRole)
     setUserId(fetchedUserId)
   }
 
@@ -81,6 +115,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setEmail(null)
     setRole(null)
     setUserId(null)
+    setRequiresTwoFactor(false)
+    setPendingEmail(null)
+    setPendingChallengeToken(null)
   }
 
   return (
@@ -92,7 +129,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         userId,
         isLoading,
         isAuthenticated: token !== null,
+        requiresTwoFactor,
+        pendingEmail,
         login,
+        verifyTotp,
         logout,
       }}
     >

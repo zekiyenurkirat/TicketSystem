@@ -45,7 +45,7 @@ function fieldCls(hasError: boolean) {
 
 // ─── LoginPage ────────────────────────────────────────────────────────────────
 
-type View = 'login' | 'register'
+type View = 'login' | 'register' | 'totp'
 
 interface RegFields {
   firstName: string
@@ -82,7 +82,7 @@ const EMPTY_REG_ERRORS: RegErrors = {
 }
 
 function LoginPage() {
-  const { login, isAuthenticated } = useAuth()
+  const { login, verifyTotp, logout, isAuthenticated, pendingEmail } = useAuth()
 
   // ── view toggle ────────────────────────────────────────────────────────────
   const [view, setView] = useState<View>('login')
@@ -94,6 +94,11 @@ function LoginPage() {
   const [loginPasswordError, setLoginPasswordError] = useState('')
   const [loginServerError, setLoginServerError] = useState('')
   const [loginSubmitting, setLoginSubmitting] = useState(false)
+
+  // ── totp state ─────────────────────────────────────────────────────────────
+  const [totpCode, setTotpCode] = useState('')
+  const [totpError, setTotpError] = useState('')
+  const [totpSubmitting, setTotpSubmitting] = useState(false)
 
   // ── register state ─────────────────────────────────────────────────────────
   const [reg, setReg] = useState<RegFields>(EMPTY_REG_FIELDS)
@@ -154,12 +159,42 @@ function LoginPage() {
     setLoginSubmitting(true)
     try {
       const request: LoginRequest = { email: loginEmail.trim(), password: loginPassword }
-      await login(request)
+      const result = await login(request)
+      if (result.requiresTwoFactor) {
+        setTotpCode('')
+        setTotpError('')
+        setView('totp')
+      }
     } catch (err) {
       setLoginServerError(err instanceof Error ? err.message : 'Giriş sırasında bir hata oluştu.')
     } finally {
       setLoginSubmitting(false)
     }
+  }
+
+  async function handleTotpSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setTotpError('')
+    if (totpCode.length !== 6 || !/^\d{6}$/.test(totpCode)) {
+      setTotpError('Lütfen 6 haneli doğrulama kodunu girin.')
+      return
+    }
+    setTotpSubmitting(true)
+    try {
+      await verifyTotp(totpCode)
+      // Başarılı: isAuthenticated=true → LoginPage başında Navigate /dashboard'a yönlendirir
+    } catch (err) {
+      setTotpError(err instanceof Error ? err.message : 'Doğrulama başarısız. Lütfen tekrar deneyin.')
+    } finally {
+      setTotpSubmitting(false)
+    }
+  }
+
+  function handleTotpBack() {
+    logout()        // challenge token ve pending state temizlenir
+    setView('login')
+    setTotpCode('')
+    setTotpError('')
   }
 
   // ── register handlers ──────────────────────────────────────────────────────
@@ -238,7 +273,59 @@ function LoginPage() {
       <div className="w-full max-w-sm">
         <Logo />
 
-        {view === 'login' ? (
+        {view === 'totp' ? (
+          <>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
+              <div className="mb-6 text-center">
+                <p className="text-sm font-medium text-slate-700 dark:text-slate-200">
+                  İki Faktörlü Doğrulama
+                </p>
+                {pendingEmail && (
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{pendingEmail}</p>
+                )}
+              </div>
+
+              <form onSubmit={handleTotpSubmit} noValidate>
+                <div className="mb-6">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1.5">
+                    Google Authenticator Kodu
+                  </label>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={totpCode}
+                    onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    autoComplete="one-time-code"
+                    className={fieldCls(!!totpError)}
+                  />
+                  {totpError && (
+                    <p className="mt-1.5 text-xs text-red-500">{totpError}</p>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={totpSubmitting}
+                  className="w-full py-2.5 bg-violet-600 text-white text-sm font-medium rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {totpSubmitting ? 'Doğrulanıyor...' : 'Doğrula'}
+                </button>
+              </form>
+            </div>
+
+            <p className="text-center text-sm text-slate-500 dark:text-slate-400 mt-5">
+              <button
+                type="button"
+                onClick={handleTotpBack}
+                className="text-violet-600 font-medium hover:text-violet-700 transition-colors"
+              >
+                Geri dön
+              </button>
+            </p>
+          </>
+        ) : view === 'login' ? (
           <>
             <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm p-8">
               <form onSubmit={handleLoginSubmit} noValidate>

@@ -51,6 +51,29 @@ public class JwtService {
         return claimsResolver.apply(extractAllClaims(token));
     }
 
+    /** 2FA için kısa ömürlü (5 dk) challenge token üretir; tam yetki içermez. */
+    public String generateChallengeToken(String email) {
+        return Jwts.builder()
+                .claims(Map.of("purpose", "2fa-challenge"))
+                .subject(email)
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + 300_000L))
+                .signWith(getSigningKey())
+                .compact();
+    }
+
+    /**
+     * Challenge token'ın imzasını ve amacını doğrular; geçerliyse email döner.
+     * Süresi dolmuş veya yanlış amaçlı token'da IllegalArgumentException fırlatır.
+     */
+    public String extractEmailFromChallengeToken(String token) {
+        Claims claims = extractAllClaims(token);
+        if (!"2fa-challenge".equals(claims.get("purpose", String.class))) {
+            throw new IllegalArgumentException("Geçersiz challenge token.");
+        }
+        return claims.getSubject();
+    }
+
     /** Token'ın verilen kullanıcıya ait ve geçerli olup olmadığını doğrular.
      *  Süresi dolmuş, bozuk veya imzası geçersiz token için false döner. */
     public boolean validateToken(String token, UserDetails userDetails) {

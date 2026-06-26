@@ -46,6 +46,14 @@ public class User extends BaseEntity {
     @Column(name = "active", nullable = false)
     private boolean active = true;
 
+    /** Google Authenticator için Base32 kodlanmış TOTP secret. Null ise 2FA kurulmamış. */
+    @Column(name = "totp_secret")
+    private String totpSecret;
+
+    /** true ise login sırasında TOTP kodu istenir. Varsayılan false — mevcut kullanıcılar etkilenmez. */
+    @Column(name = "totp_enabled", nullable = false)
+    private boolean totpEnabled = false;
+
     /** Bu kullanıcının oluşturduğu ticket'lar. */
     @OneToMany(mappedBy = "createdBy")
     private List<Ticket> createdTickets = new ArrayList<>();
