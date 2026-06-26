@@ -178,6 +178,16 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+        <!-- OpenTelemetry tracing — Micrometer bridge OTel SDK'ya bağlar; Spring Boot BOM versiyonu yönetir -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+        </dependency>
+        <!-- OTLP exporter — trace'leri HTTP/protobuf ile OTel Collector'a iletir -->
+        <dependency>
+            <groupId>io.opentelemetry</groupId>
+            <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
         <!-- Cache — Caffeine tabanlı in-process cache; slaRules gibi nadiren değişen veriler için -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

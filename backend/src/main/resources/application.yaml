@@ -82,3 +82,12 @@ management:
   endpoint:
     health:
       show-details: always
+  # OpenTelemetry tracing — OTLP HTTP/protobuf ile OTel Collector'a gönderilir (port 4318)
+  tracing:
+    sampling:
+      probability: 1.0   # demo: tüm trace'ler; production'da 0.1 önerilir
+  otlp:
+    tracing:
+      # OTEL_EXPORTER_OTLP_ENDPOINT env ile override edilebilir; default Docker servis adı
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://otel-collector:4318/v1/traces}
+      connect-timeout: 5s  # Collector geç kalkarsa backend bloklanmaz

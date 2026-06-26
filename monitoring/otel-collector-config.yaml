@@ -1,0 +1,27 @@
+# OpenTelemetry Collector konfigürasyonu
+# Backend'den OTLP HTTP (4318) ile trace alır; Jaeger'a OTLP gRPC (4317) ile iletir.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  # Jaeger'ın dahili OTLP gRPC alıcısına trace iletilir
+  otlp/jaeger:
+    endpoint: jaeger:4317
+    tls:
+      insecure: true
+
+  # Collector'ın kendi log çıktısına da yazar (debug amaçlı, opsiyonel)
+  debug:
+    verbosity: basic
+
+service:
+  pipelines:
+    traces:
+      receivers:  [otlp]
+      exporters:  [otlp/jaeger, debug]

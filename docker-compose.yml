@@ -75,6 +75,30 @@ services:
         condition: service_healthy
 
   # ────────────────────────────────
+  # OpenTelemetry Collector
+  # Backend'den OTLP HTTP (4318) ile trace alır, Jaeger'a iletir.
+  # ────────────────────────────────
+  otel-collector:
+    image: otel/opentelemetry-collector:0.100.0
+    command: ["--config=/etc/otel/config.yaml"]
+    volumes:
+      - ./monitoring/otel-collector-config.yaml:/etc/otel/config.yaml:ro
+    depends_on:
+      - jaeger
+    # Host'a port açılmıyor; backend Docker ağı üzerinden otel-collector:4318'e ulaşır
+
+  # ────────────────────────────────
+  # Jaeger — dağıtık trace UI, localhost:16686
+  # ────────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"  # Jaeger UI
+    # 4317 gRPC Collector'dan gelen OTLP için — sadece iç ağda
+
+  # ────────────────────────────────
   # Spring Boot backend
   # ────────────────────────────────
   backend:
@@ -83,13 +107,15 @@ services:
       - "8080:8080"
     environment:
       # application.yaml'daki değişken adları korundu
-      DB_URL:                  jdbc:postgresql://postgres:5432/ticketsystemdb
-      DB_USERNAME:             ${DB_USERNAME}
-      DB_PASSWORD:             ${DB_PASSWORD}
-      JWT_SECRET:              ${JWT_SECRET}
-      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      OPENSEARCH_HOST:         opensearch
-      OPENSEARCH_PORT:         "9200"
+      DB_URL:                        jdbc:postgresql://postgres:5432/ticketsystemdb
+      DB_USERNAME:                   ${DB_USERNAME}
+      DB_PASSWORD:                   ${DB_PASSWORD}
+      JWT_SECRET:                    ${JWT_SECRET}
+      KAFKA_BOOTSTRAP_SERVERS:       kafka:9092
+      OPENSEARCH_HOST:               opensearch
+      OPENSEARCH_PORT:               "9200"
+      # OTel Collector HTTP endpoint — Collector geç kalkarsa backend crash olmaz
+      OTEL_EXPORTER_OTLP_ENDPOINT:  http://otel-collector:4318/v1/traces
     volumes:
       - uploads_data:/app/uploads
     depends_on:
@@ -99,6 +125,7 @@ services:
         condition: service_healthy
       opensearch:
         condition: service_healthy
+      # otel-collector burada depends_on yok — Collector geç başlasa backend etkilenmez
 
   # ────────────────────────────────
   # React + Nginx frontend

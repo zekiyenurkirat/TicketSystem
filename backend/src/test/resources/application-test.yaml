@@ -36,3 +36,8 @@ app:
     port: 9200
   upload:
     dir: uploads/
+
+management:
+  tracing:
+    sampling:
+      probability: 0.0   # testlerde OTel Collector bağlantısı denenmez
