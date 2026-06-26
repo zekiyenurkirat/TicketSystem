@@ -11,6 +11,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,6 +25,11 @@ import java.io.IOException;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    // Keycloak chain'i bu path'leri kendi OAuth2 doğrulamasıyla işler;
+    // custom HMAC filter burada devreye girmemeli.
+    private static final String KEYCLOAK_PATH_PATTERN = "/api/v1/keycloak/**";
+    private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
+
     private final JwtService jwtService;
     private final CustomUserDetailsService customUserDetailsService;
     private final ObjectMapper objectMapper;
@@ -34,6 +40,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.jwtService = jwtService;
         this.customUserDetailsService = customUserDetailsService;
         this.objectMapper = objectMapper;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        return PATH_MATCHER.match(KEYCLOAK_PATH_PATTERN, request.getServletPath());
     }
 
     @Override

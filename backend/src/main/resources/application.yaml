@@ -67,6 +67,12 @@ springdoc:
     path: /api-docs
 
 app:
+  # Keycloak entegrasyonu — yalnızca /api/v1/keycloak/** path'i için geçerlidir.
+  # app.keycloak.enabled=false olan profillerde (test) KeycloakSecurityConfig oluşturulmaz.
+  # jwk-set-uri: imza doğrulaması için lazy fetch; startup'ta Keycloak'a bağlanılmaz.
+  keycloak:
+    enabled: ${KEYCLOAK_ENABLED:true}
+    jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/ticketsystem/protocol/openid-connect/certs}
   opensearch:
     host: ${OPENSEARCH_HOST:localhost}
     port: ${OPENSEARCH_PORT:9200}

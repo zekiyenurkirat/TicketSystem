@@ -31,6 +31,9 @@ jwt:
   expiration: 3600000
 
 app:
+  keycloak:
+    # Testlerde Keycloak çalışmaz; KeycloakSecurityConfig bean'i oluşturulmaz.
+    enabled: false
   opensearch:
     host: localhost
     port: 9200
