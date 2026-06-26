@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Test ortamı Log4j2 konfigürasyonu.
+     Log4j2, classpath'te log4j2-test.xml bulunduğunda onu log4j2.xml'e tercih eder.
+     KafkaAppender bu dosyada yoktur; testlerde Kafka bağlantı denemesi yapılmaz. -->
+<Configuration status="WARN">
+
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %logger{36} - %msg%n"/>
+        </Console>
+    </Appenders>
+
+    <Loggers>
+        <Logger name="com.ticketsystem" level="INFO" additivity="false">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Logger>
+        <Root level="WARN">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Root>
+    </Loggers>
+
+</Configuration>
