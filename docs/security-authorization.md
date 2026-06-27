@@ -268,14 +268,31 @@ Review sonrasında:
 
 ## AGENT Yetkileri
 
-- Tüm ticket'ları listeleme, görüntüleme ve geçerli statü geçişlerini yapma
-- EXTERNAL + INTERNAL yorum ekleme ve listeleme
-- Herhangi ticket'a `POST /api/v1/attachments/upload` ile dosya yükleme (ownership kısıtsız)
-- Herhangi attachment'ı `GET /api/v1/attachments/{id}/download` ile indirme (ownership kısıtsız)
-- Tüm ticket ve kullanıcı attachment'larını listeleme
+### Görüntüleme (tüm ticketlarda kısıtsız)
+
+- Tüm ticket'ları listeleme ve detay görüntüleme (`GET /api/v1/tickets/**`)
+- Tüm attachment'ları indirme (`GET /api/v1/attachments/{id}/download`)
+- Tüm ticket ve kullanıcı attachment listelerini görme
 - `GET /api/v1/users/role/{role}/active` — aktif kullanıcı listesi
 - Herhangi bir `createdById` ile ticket oluşturma
-- `PATCH /api/v1/tickets/{id}/priority-review` — ticket'ın aktif önceliğini review edebilir; `dueDate` yeniden hesaplanır
+
+### Yazma (yalnızca kendisine atanmış ticketlarda)
+
+AGENT aşağıdaki işlemleri **yalnızca `assignedTo` alanında kendi ID'si bulunan ticketlarda** gerçekleştirebilir. Atanmamış veya başka bir agent'a atanmış ticketlarda bu işlemler serviste `BusinessRuleException` (HTTP 403) ile reddedilir.
+
+| İşlem | Endpoint | Kısıt |
+|-------|----------|-------|
+| EXTERNAL yorum ekleme | `POST /api/v1/comments` | Yalnızca atanmış ticket |
+| INTERNAL (iç) not ekleme | `POST /api/v1/comments` | Yalnızca atanmış ticket |
+| Dosya yükleme | `POST /api/v1/attachments/upload` | Yalnızca atanmış ticket |
+| Statü değiştirme | `PATCH /api/v1/tickets/{id}/status` | Yalnızca atanmış ticket |
+| Öncelik inceleme | `PATCH /api/v1/tickets/{id}/priority-review` | Yalnızca atanmış ticket; `dueDate` yeniden hesaplanır |
+
+### Atama Talebi
+
+AGENT, kendisine atanmamış bir ticket için `POST /api/v1/assignment-requests` üzerinden MANAGER'a atama talebi gönderebilir. MANAGER talebi onaylarsa ticket AGENT'a atanır.
+
+### Kısıtlar
 
 AGENT kullanıcı oluşturma konusunda kısıtlıdır: `POST /api/v1/users/admin` çağrılamaz → **403**. AGENT, kendi başına veya başka bir AGENT ya da MANAGER hesabı oluşturamaz.
 
@@ -322,7 +339,16 @@ Doğrulanan önemli güvenlik senaryoları:
 | CUSTOMER (id=2) | `GET /attachments/uploader/99999` | **403** | 404 bilgisi sızdırılmaz |
 | Herhangi | `POST /users` `role=AGENT` | **400** | Public kayıt yalnızca CUSTOMER |
 | Herhangi | Token olmadan istek | **401** | Authentication katmanı |
-| AGENT | `GET /tickets/{herhangi}` | **200** | AGENT davranışı bozulmadı |
+| AGENT | `GET /tickets/{herhangi}` | **200** | AGENT tüm ticketları görüntüleyebilir |
+| AGENT | `POST /comments` (atanmış ticket) | **201** | Assignment kontrolü geçildi |
+| AGENT | `POST /comments` (atanmamış ticket) | **403** | "Yalnızca size atanmış taleplere yorum ekleyebilirsiniz." |
+| AGENT | `POST /attachments/upload` (atanmış ticket) | **201** | Assignment kontrolü geçildi |
+| AGENT | `POST /attachments/upload` (atanmamış ticket) | **403** | "Yalnızca size atanmış taleplere dosya ekleyebilirsiniz." |
+| AGENT | `PATCH /tickets/{id}/status` (atanmış ticket) | **200** | Statü güncellendi |
+| AGENT | `PATCH /tickets/{id}/status` (atanmamış ticket) | **403** | "Yalnızca size atanmış taleplerde statü değiştirebilirsiniz." |
+| AGENT | `PATCH /tickets/{id}/priority-review` (atanmış ticket) | **200** | Review alanları set; `dueDate` güncellendi |
+| AGENT | `PATCH /tickets/{id}/priority-review` (atanmamış ticket) | **403** | "Yalnızca size atanmış taleplerde öncelik incelemesi yapabilirsiniz." |
+| AGENT | `GET /attachments/{id}/download` (herhangi attachment) | **200** | İndirme AGENT için kısıtsız |
 | MANAGER | `PATCH /users/{id}/deactivate` | **200** | MANAGER yetkisi çalışıyor |
 | MANAGER | `POST /users/admin` `role=AGENT` | **201** | AGENT kullanıcı oluşturma başarılı |
 | MANAGER | `POST /users/admin` `role=MANAGER` | **201** | MANAGER kullanıcı oluşturma başarılı |
@@ -406,10 +432,10 @@ Bu projenin geliştirme ortamında ilk MANAGER hesabı doğrudan veritabanına e
 | İlk MANAGER hesabı | `POST /api/v1/users/admin` yalnızca MANAGER tokenıyla erişilebilir. İlk MANAGER hesabı bootstrap, seed data veya doğrudan veritabanı kaydıyla oluşturulmalıdır. Kod içine hardcoded admin bilgisi eklenmemelidir. |
 | `isActive` tutarlılığı | Pasif kullanıcının tüm işlemlerden engellenmesi için kontroller genişletilebilir. |
 | Rate limiting | Brute-force koruması production öncesi eklenebilir. |
-| Keycloak entegrasyonu | İleride planlanmaktadır; mevcut JWT altyapısı geçiş için hazır. |
+| Keycloak entegrasyonu | Eklenmiştir. `/api/v1/keycloak/**` altında RS256 JWT doğrulaması çalışır; diğer endpoint'ler mevcut HMAC-SHA256 JWT + TOTP 2FA akışını kullanmaya devam eder. Bkz. `docs/keycloak.md`. |
 
 ---
 
 ## Özet
 
-TicketSystem'de JWT authentication altyapısının üzerine iki katmanlı yetkilendirme eklendi. `SecurityFilterChain` ile URL bazlı rol kuralları ve servis katmanında `SecurityContextHolder` tabanlı ownership kontrolleri bir arada çalışarak CUSTOMER, AGENT ve MANAGER rollerinin güvenli veri erişim sınırları tanımlandı. Priority Triage System ile CUSTOMER priority seçimi kısıtlanmış; AGENT ve MANAGER ise `priority-review` endpointi üzerinden ticket'ların aktif önceliğini güncelleyebilir ve `dueDate`'i yeniden hesaplayabilir hale gelmiştir. Gerçek dosya yükleme ve indirme işlemleri `multipart/form-data` ile desteklenmekte; `uploadedBy`, `fileName`, `fileType`, `fileSize` ve `filePath` alanlarının tümü sunucu tarafında belirlenmekte, fiziksel depolama yolu client'a hiçbir zaman açılmamaktadır. Tüm kontroller runtime testlerle doğrulandı.
+TicketSystem'de JWT authentication altyapısının üzerine iki katmanlı yetkilendirme eklendi. `SecurityFilterChain` ile URL bazlı rol kuralları ve servis katmanında `SecurityContextHolder` tabanlı ownership + assignment kontrolleri bir arada çalışarak CUSTOMER, AGENT ve MANAGER rollerinin güvenli veri erişim sınırları tanımlandı. AGENT rolü tüm ticket'ları görüntüleyebilir; ancak yorum ekleme, dosya yükleme, statü değişikliği ve öncelik incelemesi yalnızca AGENT'a atanmış ticket'larda gerçekleştirilebilir — bu kısıt servis katmanında zorunlu kılınmıştır. Priority Triage System ile CUSTOMER priority seçimi kısıtlanmış; AGENT (atanmış ticketlarda) ve MANAGER ise `priority-review` endpointi üzerinden ticket'ların aktif önceliğini güncelleyebilir ve `dueDate`'i yeniden hesaplayabilir hale gelmiştir. Gerçek dosya yükleme ve indirme işlemleri `multipart/form-data` ile desteklenmekte; `uploadedBy`, `fileName`, `fileType`, `fileSize` ve `filePath` alanlarının tümü sunucu tarafında belirlenmekte, fiziksel depolama yolu client'a hiçbir zaman açılmamaktadır. Tüm kontroller runtime testlerle doğrulandı.

@@ -10,9 +10,12 @@ Dağınık e-posta ve telefon tabanlı destek akışlarının yol açtığı tak
 
 ## Özellikler
 
-- JWT kimlik doğrulama ve BCrypt şifre güvenliği
+- JWT kimlik doğrulama (HMAC-SHA256) ve BCrypt şifre güvenliği
+- TOTP tabanlı iki aşamalı doğrulama (2FA) — authenticator uygulaması ile
+- Keycloak entegrasyonu — `/api/v1/keycloak/**` altında RS256 JWT desteği (demo)
 - Rol bazlı yetkilendirme: CUSTOMER, AGENT, MANAGER
 - URL düzeyi ve servis düzeyi (ownership) iki katmanlı erişim kontrolü
+- AGENT yetki kısıtı: yorum, dosya, statü ve öncelik işlemleri yalnızca atanmış ticketlarda
 - Ticket oluşturma, listeleme, detay görüntüleme ve atama
 - Ticket yaşam döngüsü yönetimi — 7 statü: NEW → ASSIGNED → IN_PROGRESS → WAITING_FOR_CUSTOMER → RESOLVED → CLOSED / CANCELLED
 - Öncelik triage/review sistemi: impact × urgency matrisi ile suggestedPriority hesaplama
@@ -29,7 +32,7 @@ Dağınık e-posta ve telefon tabanlı destek akışlarının yol açtığı tak
 - Apache Kafka ticket event pipeline (CREATE / ASSIGN / STATUS_CHANGE)
 - OpenSearch indexleme ve OpenSearch Dashboards ile arama
 - Prometheus + Grafana ile metrik tabanlı monitoring
-- OpenTelemetry ile dağıtık izleme altyapısı
+- OpenTelemetry + Jaeger ile dağıtık izleme altyapısı
 - JUnit 5 + Mockito ile birim test kalite güvencesi
 - Swagger / OpenAPI dokümantasyonu
 
@@ -40,7 +43,7 @@ Dağınık e-posta ve telefon tabanlı destek akışlarının yol açtığı tak
 | Rol | Açıklama |
 |---|---|
 | **CUSTOMER** | Destek talebi açar, kendi taleplerini takip eder, yorum ve dosya ekler |
-| **AGENT** | Atanmış talepleri işler, statü günceller, iç/dış yorum ekler, atama talebi oluşturur |
+| **AGENT** | Tüm talepleri görüntüler; yalnızca kendisine atanmış taleplerde statü günceller, iç/dış yorum ekler, dosya yükler; atama talebi oluşturur |
 | **MANAGER** | Ticket atar, önceliği triage eder, kullanıcıları yönetir, sistem genelini izler |
 
 ---
@@ -63,6 +66,7 @@ Dağınık e-posta ve telefon tabanlı destek akışlarının yol açtığı tak
 | Micrometer | Prometheus metrik registry |
 | Springdoc OpenAPI | Swagger UI dokümantasyonu |
 | JJWT | 0.12.6 — JWT üretme ve doğrulama |
+| Spring Security OAuth2 Resource Server | Keycloak RS256 JWT doğrulaması (demo) |
 | Lombok | Tekrarlayan kod azaltma |
 
 ### Frontend
@@ -87,13 +91,15 @@ Dağınık e-posta ve telefon tabanlı destek akışlarının yol açtığı tak
 
 | Teknoloji | Açıklama |
 |---|---|
-| Docker Compose | 8 servis orkestrasyonu |
+| Docker Compose | 11 servis orkestrasyonu |
 | Apache Kafka | 3.7.0 KRaft modunda event streaming |
 | OpenSearch | 2.13.0 — ticket event indexleme |
 | OpenSearch Dashboards | Arama ve görselleştirme |
 | Prometheus | 2.51.2 — metrik toplama |
 | Grafana | 10.4.2 — metrik görselleştirme |
-| OpenTelemetry | Dağıtık izleme ve trace altyapısı |
+| OpenTelemetry Collector | Trace toplama ve iletme |
+| Jaeger | 1.57 — dağıtık izleme UI |
+| Keycloak | 24.0.4 — harici kimlik sağlayıcı (demo) |
 
 ### Test ve Kalite Güvence
 
@@ -148,6 +154,8 @@ TicketSystem, her bileşenin Docker Compose ile orkestrasyona alındığı katma
 | OpenSearch Dashboards | http://localhost:5601 |
 | Prometheus | http://localhost:9090 |
 | Grafana | http://localhost:3001 |
+| Keycloak Admin Console | http://localhost:8081 |
+| Jaeger UI | http://localhost:16686 |
 
 ---
 
@@ -207,7 +215,7 @@ docker compose up -d
 docker compose ps
 ```
 
-Tüm servislerin `running` durumunda görünmesi beklenir: `postgres`, `kafka`, `opensearch`, `opensearch-dashboards`, `backend`, `frontend`, `prometheus`, `grafana`
+Tüm servislerin `running` durumunda görünmesi beklenir: `postgres`, `kafka`, `opensearch`, `opensearch-dashboards`, `otel-collector`, `jaeger`, `backend`, `frontend`, `keycloak`, `prometheus`, `grafana`
 
 > **Not:** Backend, `postgres`, `kafka` ve `opensearch` servislerinin sağlık kontrollerini geçmesini bekler. İlk başlatmada OpenSearch hazır olana kadar 30–60 saniye sürebilir.
 
@@ -291,9 +299,12 @@ docker compose exec kafka /opt/kafka/bin/kafka-console-consumer.sh \
 
 ## Güvenlik
 
-- **JWT Authentication:** Stateless token tabanlı kimlik doğrulama; 24 saat geçerlilik süresi. İmzalama anahtarı environment variable'dan okunur; kod içine gömülmez.
+- **JWT Authentication:** Stateless HMAC-SHA256 token tabanlı kimlik doğrulama; 24 saat geçerlilik süresi. İmzalama anahtarı environment variable'dan okunur; kod içine gömülmez.
+- **TOTP 2FA:** Giriş sonrası authenticator uygulamasından alınan tek kullanımlık kod ile ikinci doğrulama adımı.
+- **Keycloak (Demo):** `/api/v1/keycloak/**` altında RS256 JWT doğrulaması. Mevcut custom JWT + TOTP akışı değiştirilmemiştir.
 - **BCrypt:** Tüm şifreler BCrypt ile hashlenerek saklanır; düz metin hiçbir zaman veritabanında tutulmaz.
-- **İki Katmanlı Yetkilendirme:** `SecurityFilterChain` ile URL bazlı rol kuralları; servis katmanında `SecurityContextHolder` üzerinden ownership kontrolleri.
+- **İki Katmanlı Yetkilendirme:** `SecurityFilterChain` ile URL bazlı rol kuralları; servis katmanında `SecurityContextHolder` üzerinden ownership ve assignment kontrolleri.
+- **AGENT Yetki Kısıtı:** Yorum, dosya yükleme, statü değişikliği ve öncelik incelemesi yalnızca AGENT'a atanmış ticketlarda gerçekleştirilebilir; backend servis katmanında zorunlu kılınmıştır.
 - **Dosya Upload Güvenliği:** MIME type ve uzantı whitelist kontrolü (PDF, DOC, DOCX, PNG, JPG, TXT), 10 MB boyut sınırı, path traversal engeli. Fiziksel depolama yolu hiçbir API yanıtında döndürülmez.
 - **Actuator Güvenliği:** Yalnızca `/actuator/health` ve `/actuator/prometheus` endpoint'leri public erişime açıktır; diğer actuator endpoint'leri kimlik doğrulama gerektirir.
 
@@ -311,14 +322,18 @@ TicketSystem/
 │   ├── src/                    # Kaynak kod
 │   ├── nginx.conf              # SPA routing + /api/ proxy
 │   └── Dockerfile              # Multi-stage build (Node + Nginx Alpine)
+├── keycloak/
+│   └── realm-export.json       # Keycloak realm + demo kullanıcı import tanımı
 ├── monitoring/
-│   └── prometheus.yml          # Scrape konfigürasyonu
+│   ├── prometheus.yml          # Prometheus scrape konfigürasyonu
+│   └── otel-collector-config.yaml  # OTel Collector → Jaeger pipeline
 ├── docs/                       # Proje dokümantasyonu
 │   ├── proje-gereksinimleri.md
 │   ├── teknik-analiz.md
 │   ├── security-authorization.md
+│   ├── keycloak.md             # Keycloak entegrasyonu ve demo komutları
 │   └── roadmap.md
-├── docker-compose.yml          # 8 servis orkestrasyonu
+├── docker-compose.yml          # 11 servis orkestrasyonu
 └── .env.example                # Ortam değişkeni şablonu
 ```
 
@@ -330,7 +345,8 @@ TicketSystem/
 |---|---|
 | [Proje Gereksinimleri](docs/proje-gereksinimleri.md) | Fonksiyonel ve teknik gereksinimler |
 | [Teknik Analiz](docs/teknik-analiz.md) | Mimari yapı ve teknoloji kararları |
-| [Güvenlik & Yetkilendirme](docs/security-authorization.md) | JWT, rol bazlı erişim, ownership kuralları |
+| [Güvenlik & Yetkilendirme](docs/security-authorization.md) | JWT, TOTP 2FA, rol bazlı erişim, ownership ve assignment kuralları |
+| [Keycloak Entegrasyonu](docs/keycloak.md) | Keycloak demo kurulumu, token alma, role mapping |
 | [Roadmap](docs/roadmap.md) | Faz bazlı geliştirme planı |
 
 ---
