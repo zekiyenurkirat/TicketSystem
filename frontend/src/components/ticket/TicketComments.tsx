@@ -5,6 +5,7 @@ import { addComment, getCommentsForTicket } from '../../api/comment.api'
 
 type TicketCommentsProps = {
   ticketId: number
+  canWrite: boolean
 }
 
 function formatDateTime(iso: string): string {
@@ -17,7 +18,7 @@ function formatDateTime(iso: string): string {
   })
 }
 
-function TicketComments({ ticketId }: TicketCommentsProps) {
+function TicketComments({ ticketId, canWrite }: TicketCommentsProps) {
   const { userId, role } = useAuth()
 
   const [comments, setComments] = useState<CommentResponse[]>([])
@@ -140,7 +141,13 @@ function TicketComments({ ticketId }: TicketCommentsProps) {
         </div>
       )}
 
-      <div>
+      {!canWrite && (
+        <p className="text-xs text-slate-400 italic">
+          Yalnızca size atanmış taleplere yorum ekleyebilirsiniz.
+        </p>
+      )}
+
+      {canWrite && <div>
         {showInternalToggle && (
           <div className="flex gap-1.5 mb-2">
             <button
@@ -212,7 +219,7 @@ function TicketComments({ ticketId }: TicketCommentsProps) {
         </div>
 
         {formError && <p className="mt-1 text-xs text-red-600">{formError}</p>}
-      </div>
+      </div>}
     </div>
   )
 }

@@ -188,6 +188,12 @@ public class TicketServiceImpl implements TicketService {
                 && !(currentStatus == TicketStatus.RESOLVED && newStatus == TicketStatus.CLOSED)) {
             throw new BusinessRuleException("Müşteri yalnızca çözümlenmiş kendi ticketını kapatabilir.");
         }
+        if (currentUser.getRole() == Role.AGENT) {
+            if (ticket.getAssignedTo() == null
+                    || !ticket.getAssignedTo().getId().equals(currentUser.getId())) {
+                throw new BusinessRuleException("Yalnızca size atanmış taleplerde statü değiştirebilirsiniz.");
+            }
+        }
 
         if (currentStatus == newStatus) {
             throw new BusinessRuleException("Ticket zaten bu statüde: " + currentStatus);
@@ -264,11 +270,18 @@ public class TicketServiceImpl implements TicketService {
     @Transactional
     public Ticket reviewPriority(Long ticketId, PriorityReviewRequest request) {
         Ticket ticket = getTicketById(ticketId);
+        User currentUser = getCurrentUser();
+        if (currentUser.getRole() == Role.AGENT) {
+            if (ticket.getAssignedTo() == null
+                    || !ticket.getAssignedTo().getId().equals(currentUser.getId())) {
+                throw new BusinessRuleException("Yalnızca size atanmış taleplerde öncelik incelemesi yapabilirsiniz.");
+            }
+        }
         ticket.setPriority(request.getPriority());
         ticket.setDueDate(slaService.calculateDueDate(request.getPriority()));
         ticket.setPriorityReviewNote(request.getReviewNote());
         ticket.setPriorityReviewedAt(LocalDateTime.now());
-        ticket.setPriorityReviewedBy(getCurrentUser());
+        ticket.setPriorityReviewedBy(currentUser);
         return ticketRepository.save(ticket);
     }
 

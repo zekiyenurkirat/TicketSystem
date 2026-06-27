@@ -61,6 +61,12 @@ public class CommentServiceImpl implements CommentService {
         if (authorRole == Role.CUSTOMER && request.getType() == CommentType.INTERNAL) {
             throw new BusinessRuleException("CUSTOMER rolündeki kullanıcı INTERNAL yorum ekleyemez.");
         }
+        if (authorRole == Role.AGENT) {
+            if (ticket.getAssignedTo() == null
+                    || !ticket.getAssignedTo().getId().equals(author.getId())) {
+                throw new BusinessRuleException("Yalnızca size atanmış taleplere yorum ekleyebilirsiniz.");
+            }
+        }
 
         Comment comment = new Comment();
         comment.setTicket(ticket);

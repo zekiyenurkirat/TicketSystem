@@ -4,6 +4,7 @@ import type { TicketResponse, TicketStatus, Priority, Impact, Urgency } from '..
 import TicketActions from './TicketActions'
 import TicketAttachments from './TicketAttachments'
 import TicketComments from './TicketComments'
+import { useAuth } from '../../context/AuthContext'
 
 const STATUS_LABELS: Record<TicketStatus, string> = {
   NEW: 'Yeni',
@@ -102,6 +103,8 @@ type TicketDetailPanelProps = {
 }
 
 function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelProps) {
+  const { userId } = useAuth()
+
   if (!ticket) {
     return (
       <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center py-20">
@@ -191,9 +194,25 @@ function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelP
           </Section>
         )}
 
-        <TicketAttachments key={`att-${ticket.id}`} ticketId={ticket.id} />
+        <TicketAttachments
+          key={`att-${ticket.id}`}
+          ticketId={ticket.id}
+          canUpload={
+            role === 'MANAGER' ||
+            role === 'CUSTOMER' ||
+            (role === 'AGENT' && ticket.assignedToId === userId)
+          }
+        />
 
-        <TicketComments key={`cmt-${ticket.id}`} ticketId={ticket.id} />
+        <TicketComments
+          key={`cmt-${ticket.id}`}
+          ticketId={ticket.id}
+          canWrite={
+            role === 'MANAGER' ||
+            role === 'CUSTOMER' ||
+            (role === 'AGENT' && ticket.assignedToId === userId)
+          }
+        />
       </div>
 
       {role && (
@@ -201,6 +220,7 @@ function TicketDetailPanel({ ticket, role, onTicketUpdated }: TicketDetailPanelP
           key={ticket.id}
           ticket={ticket}
           role={role}
+          userId={userId}
           onUpdated={onTicketUpdated}
         />
       )}

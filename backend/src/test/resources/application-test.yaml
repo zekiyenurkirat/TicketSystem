@@ -1,4 +1,10 @@
 spring:
+  autoconfigure:
+    exclude:
+      # Test ortamında Keycloak çalışmadığı için OAuth2 resource server auto-config devre dışı.
+      # nimbus-jose-jwt'nin HTTP client başlatması Windows + JDK NIO pipe sorununa yol açar.
+      - org.springframework.boot.autoconfigure.security.oauth2.resource.servlet.OAuth2ResourceServerAutoConfiguration
+
   datasource:
     url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     username: sa

@@ -8,6 +8,7 @@ import {
 
 type TicketAttachmentsProps = {
   ticketId: number
+  canUpload: boolean
 }
 
 const ALLOWED_EXT = ['pdf', 'doc', 'docx', 'png', 'jpg', 'jpeg', 'txt']
@@ -40,7 +41,7 @@ function validateFile(file: File): string | null {
   return null
 }
 
-function TicketAttachments({ ticketId }: TicketAttachmentsProps) {
+function TicketAttachments({ ticketId, canUpload }: TicketAttachmentsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [attachments, setAttachments] = useState<AttachmentResponse[]>([])
@@ -165,6 +166,7 @@ function TicketAttachments({ ticketId }: TicketAttachmentsProps) {
         <p className="mb-3 text-xs text-red-600">{downloadError}</p>
       )}
 
+      {canUpload ? (
       <div>
         <input
           ref={fileInputRef}
@@ -200,6 +202,11 @@ function TicketAttachments({ ticketId }: TicketAttachmentsProps) {
           <p className="mt-1 text-xs text-red-600">{uploadError}</p>
         )}
       </div>
+      ) : (
+        <p className="text-xs text-slate-400 italic">
+          Yalnızca size atanmış taleplere dosya ekleyebilirsiniz.
+        </p>
+      )}
     </div>
   )
 }

@@ -44,10 +44,11 @@ function getAvailableTransitions(status: TicketStatus, role: UserRole): TicketSt
 type TicketActionsProps = {
   ticket: TicketResponse
   role: UserRole
+  userId: number | null
   onUpdated: (updated: TicketResponse) => void
 }
 
-function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
+function TicketActions({ ticket, role, userId, onUpdated }: TicketActionsProps) {
   const [newStatus, setNewStatus] = useState<TicketStatus | null>(null)
   const [statusError, setStatusError] = useState<string | null>(null)
   const [statusSubmitting, setStatusSubmitting] = useState(false)
@@ -69,13 +70,17 @@ function TicketActions({ ticket, role, onUpdated }: TicketActionsProps) {
   const [requestError, setRequestError] = useState<string | null>(null)
   const [requestSent, setRequestSent] = useState(false)
 
+  // AGENT yalnızca kendisine atanmış ticketlarda yazma işlemi yapabilir
+  const isAssignedAgent = role === 'AGENT' && ticket.assignedToId === userId
+
   const showAssign =
     role === 'MANAGER' && (ticket.status === 'NEW' || ticket.status === 'ASSIGNED')
-  const showReview = role === 'AGENT' || role === 'MANAGER'
+  const showReview = role === 'MANAGER' || isAssignedAgent
   const showRequestAssignment =
     role === 'AGENT' && ticket.status === 'NEW' && ticket.assignedToId === null
   const availableTransitions = getAvailableTransitions(ticket.status, role)
-  const showStatus = availableTransitions.length > 0
+  const showStatus =
+    availableTransitions.length > 0 && (role !== 'AGENT' || isAssignedAgent)
 
   useEffect(() => {
     if (!showAssign) return

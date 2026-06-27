@@ -22,6 +22,11 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
 
+    // Default auto-config factory'siyle tutarlı olmak için aynı property okunur.
+    // application-test.yaml: auto-startup=false → Kafka NetworkClient test sırasında açılmaz.
+    @Value("${spring.kafka.listener.auto-startup:true}")
+    private boolean autoStartup;
+
     @Bean
     public ConsumerFactory<String, String> stringConsumerFactory() {
         return new DefaultKafkaConsumerFactory<>(Map.of(
@@ -37,6 +42,7 @@ public class KafkaConsumerConfig {
         ConcurrentKafkaListenerContainerFactory<String, String> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(stringConsumerFactory());
+        factory.setAutoStartup(autoStartup);
         return factory;
     }
 }

@@ -71,6 +71,13 @@ public class AttachmentServiceImpl implements AttachmentService {
         if (!currentUser.isActive()) {
             throw new BusinessRuleException("Pasif kullanıcı dosya ekleyemez.");
         }
+        // 3b. AGENT yalnızca kendisine atanmış taleplere dosya ekleyebilir.
+        if (currentUser.getRole() == Role.AGENT) {
+            if (ticket.getAssignedTo() == null
+                    || !ticket.getAssignedTo().getId().equals(currentUser.getId())) {
+                throw new BusinessRuleException("Yalnızca size atanmış taleplere dosya ekleyebilirsiniz.");
+            }
+        }
 
         // 4. Dosya boyutu ve boşluk kontrolü.
         validateFile(file);
